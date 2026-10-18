@@ -1,11 +1,22 @@
 # Builds an UNSIGNED iOS .ipa on a free GitHub macOS runner (no Apple Developer account needed).
 # Sign/install it yourself with a free Apple ID using a sideloading tool (e.g. Sideloadly, AltStore).
 #
-# Run it: GitHub → Actions → "iOS unsigned IPA" → Run workflow. Download the artifact when done.
+# Runs on every push to master that touches the app, or manually: Actions → "iOS unsigned IPA" → Run workflow.
+# Download the "Salah-unsigned-ipa" artifact when done.
 name: iOS unsigned IPA
 
 on:
   workflow_dispatch:
+  # Also build automatically when app code or config changes on master.
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'app.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/ios-unsigned-ipa.yml'
 
 jobs:
   build:
