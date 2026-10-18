@@ -1,0 +1,130 @@
+{
+ "code": 200,
+ "status": "OK",
+ "data": [
+  {
+   "timings": {
+    "Fajr": "2026-10-28T05:38:00+03:00",
+    "Sunrise": "2026-10-28T07:06:00+03:00",
+    "Dhuhr": "2026-10-28T12:39:00+03:00",
+    "Asr": "2026-10-28T15:48:00+03:00",
+    "Maghrib": "2026-10-28T18:11:00+03:00",
+    "Isha": "2026-10-28T19:30:00+03:00"
+   },
+   "date": {
+    "gregorian": {
+     "date": "28-10-2026"
+    },
+    "hijri": {
+     "day": "17",
+     "year": "1448",
+     "month": {
+      "number": 5,
+      "en": "Jumādá al-ūlá",
+      "ar": "جُمادى الأولى"
+     }
+    }
+   },
+   "meta": {
+    "timezone": "Africa/Cairo",
+    "method": {
+     "id": 5,
+     "name": "Egyptian General Authority of Survey"
+    }
+   }
+  },
+  {
+   "timings": {
+    "Fajr": "2026-10-29T05:39:00+03:00",
+    "Sunrise": "2026-10-29T07:07:00+03:00",
+    "Dhuhr": "2026-10-29T12:39:00+03:00",
+    "Asr": "2026-10-29T15:48:00+03:00",
+    "Maghrib": "2026-10-29T18:11:00+03:00",
+    "Isha": "2026-10-29T19:29:00+03:00"
+   },
+   "date": {
+    "gregorian": {
+     "date": "29-10-2026"
+    },
+    "hijri": {
+     "day": "18",
+     "year": "1448",
+     "month": {
+      "number": 5,
+      "en": "Jumādá al-ūlá",
+      "ar": "جُمادى الأولى"
+     }
+    }
+   },
+   "meta": {
+    "timezone": "Africa/Cairo",
+    "method": {
+     "id": 5,
+     "name": "Egyptian General Authority of Survey"
+    }
+   }
+  },
+  {
+   "timings": {
+    "Fajr": "2026-10-30T04:40:00+02:00",
+    "Sunrise": "2026-10-30T06:07:00+02:00",
+    "Dhuhr": "2026-10-30T11:39:00+02:00",
+    "Asr": "2026-10-30T14:47:00+02:00",
+    "Maghrib": "2026-10-30T17:10:00+02:00",
+    "Isha": "2026-10-30T18:28:00+02:00"
+   },
+   "date": {
+    "gregorian": {
+     "date": "30-10-2026"
+    },
+    "hijri": {
+     "day": "19",
+     "year": "1448",
+     "month": {
+      "number": 5,
+      "en": "Jumādá al-ūlá",
+      "ar": "جُمادى الأولى"
+     }
+    }
+   },
+   "meta": {
+    "timezone": "Africa/Cairo",
+    "method": {
+     "id": 5,
+     "name": "Egyptian General Authority of Survey"
+    }
+   }
+  },
+  {
+   "timings": {
+    "Fajr": "2026-10-31T04:40:00+02:00",
+    "Sunrise": "2026-10-31T06:08:00+02:00",
+    "Dhuhr": "2026-10-31T11:39:00+02:00",
+    "Asr": "2026-10-31T14:46:00+02:00",
+    "Maghrib": "2026-10-31T17:09:00+02:00",
+    "Isha": "2026-10-31T18:28:00+02:00"
+   },
+   "date": {
+    "gregorian": {
+     "date": "31-10-2026"
+    },
+    "hijri": {
+     "day": "20",
+     "year": "1448",
+     "month": {
+      "number": 5,
+      "en": "Jumādá al-ūlá",
+      "ar": "جُمادى الأولى"
+     }
+    }
+   },
+   "meta": {
+    "timezone": "Africa/Cairo",
+    "method": {
+     "id": 5,
+     "name": "Egyptian General Authority of Survey"
+    }
+   }
+  }
+ ]
+}

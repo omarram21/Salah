@@ -1,0 +1,60 @@
+# Builds an UNSIGNED iOS .ipa on a free GitHub macOS runner (no Apple Developer account needed).
+# Sign/install it yourself with a free Apple ID using a sideloading tool (e.g. Sideloadly, AltStore).
+#
+# Run it: GitHub → Actions → "iOS unsigned IPA" → Run workflow. Download the artifact when done.
+name: iOS unsigned IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-26 # Xcode 26.4.1 by default; Expo SDK 57 needs Xcode 26.4+
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate the native iOS project (also runs pod install)
+        run: npx expo prebuild --platform ios --clean
+
+      # Free Apple IDs can't sign the Push Notifications capability. The app only uses
+      # local notifications, which don't need it.
+      - name: Remove push entitlement
+        run: |
+          find ios -name "*.entitlements" -print -exec /usr/libexec/PlistBuddy -c "Delete :aps-environment" {} \; || true
+
+      - name: Build release app without code signing
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -workspace ios/Salah.xcworkspace \
+            -scheme Salah \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | tail -n 50
+          test -d build/Build/Products/Release-iphoneos/Salah.app
+
+      - name: Package .ipa
+        run: |
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/Salah.app Payload/
+          zip -qry Salah-unsigned.ipa Payload
+          ls -lh Salah-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Salah-unsigned-ipa
+          path: Salah-unsigned.ipa
+          retention-days: 14
