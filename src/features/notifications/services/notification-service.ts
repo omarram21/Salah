@@ -2,12 +2,13 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { PlannedNotification } from '../logic/build-schedule';
+import type { NotificationContent } from '../logic/content';
 
 export const CHANNEL_ID = 'prayer-times';
+/** Test alarms use this id prefix so rescheduling never cancels them. */
+export const TEST_ID_PREFIX = 'test:';
 
 export type PermissionStatus = 'granted' | 'denied' | 'undetermined';
-
-export type NotificationContent = { title: string; body: string };
 
 /** Show alarms as banners with sound even while the app is open. Call once at startup. */
 export function configureNotificationHandler() {
@@ -41,12 +42,22 @@ export async function getPermission({ prompt }: { prompt: boolean }): Promise<Pe
   return asked.granted ? 'granted' : 'denied';
 }
 
-/** Replaces every scheduled notification with `plans`. */
+/** Cancels all prayer alarms we scheduled, leaving pending test alarms alone. */
+export async function cancelPrayerAlarms() {
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    pending
+      .filter((n) => !n.identifier.startsWith(TEST_ID_PREFIX))
+      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+  );
+}
+
+/** Replaces every scheduled prayer alarm with `plans`. */
 export async function replaceSchedule(
   plans: PlannedNotification[],
   contentFor: (plan: PlannedNotification) => NotificationContent,
 ) {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  await cancelPrayerAlarms();
   for (const plan of plans) {
     const { title, body } = contentFor(plan);
     await Notifications.scheduleNotificationAsync({
@@ -55,7 +66,7 @@ export async function replaceSchedule(
         title,
         body,
         sound: true,
-        data: { date: plan.date, prayer: plan.prayer, kind: plan.kind },
+        data: { date: plan.date, prayer: plan.prayer, kind: plan.kind, at: plan.at },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -66,6 +77,38 @@ export async function replaceSchedule(
   }
 }
 
-export async function cancelAll() {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+/** Fires `items` after the given delays, for checking sound/banners right away. */
+export async function scheduleTestAlarms(items: { content: NotificationContent; inSeconds: number }[]) {
+  await Promise.all(
+    items.map(({ content, inSeconds }, i) =>
+      Notifications.scheduleNotificationAsync({
+        identifier: `${TEST_ID_PREFIX}${Date.now()}-${i}`,
+        content: { ...content, sound: true, data: { test: true, at: Date.now() + inSeconds * 1000 } },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: inSeconds,
+          channelId: CHANNEL_ID,
+        },
+      }),
+    ),
+  );
+}
+
+export type ScheduledAlarm = { id: string; title: string; body: string; at: number | null; isTest: boolean };
+
+/** What the OS currently has queued, soonest first. */
+export async function listScheduledAlarms(): Promise<ScheduledAlarm[]> {
+  const pending = await Notifications.getAllScheduledNotificationsAsync();
+  return pending
+    .map((n) => {
+      const at = (n.content.data as { at?: unknown } | null)?.at;
+      return {
+        id: n.identifier,
+        title: n.content.title ?? '',
+        body: n.content.body ?? '',
+        at: typeof at === 'number' ? at : null,
+        isTest: n.identifier.startsWith(TEST_ID_PREFIX),
+      };
+    })
+    .sort((a, b) => (a.at ?? Infinity) - (b.at ?? Infinity));
 }

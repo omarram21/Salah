@@ -6,11 +6,11 @@ import { locationToday, usePrayerDays, usePrayerParams } from '@/features/prayer
 import { useSettingsStore } from '@/features/settings';
 import { useTrackingStore } from '@/features/tracking';
 import { deviceUtcOffsetMin } from '@/shared/lib/date-key';
-import { formatWallTime } from '@/shared/lib/format';
 
 import { buildSchedule, type PlannedNotification } from '../logic/build-schedule';
+import { notificationContent } from '../logic/content';
 import {
-  cancelAll,
+  cancelPrayerAlarms,
   configureNotificationHandler,
   ensureChannel,
   getPermission,
@@ -43,7 +43,7 @@ export function useNotificationSync() {
       try {
         if (!prefs.enabled) {
           lastSignature.current = null;
-          await cancelAll();
+          await cancelPrayerAlarms();
           return;
         }
         await ensureChannel(t('alarms.channelName'));
@@ -58,21 +58,8 @@ export function useNotificationSync() {
         const signature = `${i18n.language}|${plans.map((p) => `${p.id}@${p.at}`).join(',')}`;
         if (signature === lastSignature.current) return;
 
-        const labels = { am: t('common.am'), pm: t('common.pm') };
-        const contentFor = (plan: PlannedNotification) => {
-          const prayer = t(`prayers.${plan.prayer}`);
-          if (plan.kind === 'start') {
-            const wall = index.get(plan.date)?.times[plan.prayer].wall ?? '';
-            return {
-              title: t('alarms.startTitle', { prayer }),
-              body: t('alarms.startBody', { prayer, time: formatWallTime(wall, labels) }),
-            };
-          }
-          return {
-            title: t('alarms.reminderTitle', { prayer }),
-            body: t('alarms.reminderBody', { prayer, minutes: prefs.reminderMinutes }),
-          };
-        };
+        const contentFor = (plan: PlannedNotification) =>
+          notificationContent(plan, { t, index, reminderMinutes: prefs.reminderMinutes });
         await replaceSchedule(plans, contentFor);
         lastSignature.current = signature;
       } catch (e) {

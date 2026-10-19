@@ -1,5 +1,5 @@
 export { LocationPicker } from './components/location-picker';
-export { LocationSetupCard } from './components/location-setup-card';
+export { WelcomeView } from './components/welcome-view';
 export { CITIES, findCity, searchCities, type City } from './data/cities';
 export { useGpsLocation } from './hooks/use-gps-location';
 export { useGpsRefresh } from './hooks/use-gps-refresh';

@@ -1,9 +1,9 @@
 import { useColorScheme } from 'nativewind';
 import { useEffect } from 'react';
 
-import { useSettingsStore } from '../store/settings-store';
-
 import { palette } from '@/shared/theme/colors';
+
+import { useSettingsStore } from '../store/settings-store';
 
 /** Applies the user's theme preference to NativeWind and returns raw colors. */
 export function useAppTheme() {
@@ -15,5 +15,5 @@ export function useAppTheme() {
   }, [preference, setColorScheme]);
 
   const isDark = colorScheme === 'dark';
-  return { isDark, colors: isDark ? palette.dark : palette.light, palette };
+  return { isDark, colors: isDark ? palette.dark : palette.light };
 }

@@ -1,118 +1,148 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { getCalendars } from 'expo-localization';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
-import { PRAYERS, type DayIndex } from '@/features/prayer-times';
-import { STATUS_STYLE, STATUSES } from '@/features/tracking';
+import { PRAYER_ICON, PRAYERS, type DayIndex } from '@/features/prayer-times';
+import { DemoBanner, STATUS_STYLE, STATUSES, StatusIcon } from '@/features/tracking';
+import { useDateFormat } from '@/shared/i18n';
 import type { DateKey } from '@/shared/lib/date-key';
-import { Card, SegmentedControl, Text } from '@/shared/ui';
+import { useThemeColors } from '@/shared/theme/use-theme-colors';
+import { Icon, Screen, SegmentedControl, Text } from '@/shared/ui';
 
 import { useStats, type StatsPeriod } from '../hooks/use-stats';
 import { onTimeCount, type StatusCounts, type StatusKey } from '../logic/counts';
+import { prayerInsight } from '../logic/insights';
+import { weekStart } from '../logic/ranges';
 
 const KEYS: StatusKey[] = [...STATUSES, 'unmarked'];
+const TILE_BG: Record<StatusKey, string> = {
+  mosque: 'bg-[#EFF4FF] dark:bg-[#16203A]',
+  onTime: 'bg-[#ECFBF1] dark:bg-[#11261A]',
+  late: 'bg-[#FEF6E7] dark:bg-[#2A2010]',
+  missed: 'bg-[#FDEEEE] dark:bg-[#2A1414]',
+  unmarked: 'bg-chip dark:bg-chip-dark',
+};
 
 type Props = { index: DayIndex; now: number; today: DateKey };
 
+/** Stats tab (design E): on-time %, status counts, per-prayer bars, streaks, one insight. */
 export function StatsView({ index, now, today }: Props) {
   const { t } = useTranslation();
+  const fmt = useDateFormat();
+  const { c } = useThemeColors();
   const [period, setPeriod] = useState<StatsPeriod>('week');
   const { summary, current, best } = useStats(period, index, now, today);
+  const pct = summary.due ? Math.round((onTimeCount(summary.total) / summary.due) * 100) : null;
+  const insight = prayerInsight(summary);
+  const range =
+    period === 'week'
+      ? `${fmt.short(weekStart(today, getCalendars()[0]?.firstWeekday ?? 1))} – ${fmt.short(today)}`
+      : fmt.monthYear(today);
 
   return (
-    <View className="gap-4">
-      <SegmentedControl
-        value={period}
-        onChange={setPeriod}
-        options={[
-          { value: 'week', label: t('stats.thisWeek') },
-          { value: 'month', label: t('stats.thisMonth') },
-        ]}
-      />
-
-      <Card className="gap-1">
-        <Text variant="muted">{t('stats.onTimeRate')}</Text>
-        <View className="flex-row items-baseline gap-2">
-          <Text className="text-4xl font-bold tabular-nums text-status-onTime">
-            {percent(onTimeCount(summary.total), summary.due)}
-          </Text>
-          <Text variant="muted" className="tabular-nums">
-            {t('stats.ofTotal', { count: onTimeCount(summary.total), total: summary.due })}
+    <Screen
+      title={t('tabs.stats')}
+      subtitle={range}
+      headerRight={
+        <SegmentedControl
+          size="fit"
+          value={period}
+          onChange={setPeriod}
+          accessibilityLabel={t('stats.period')}
+          options={[
+            { value: 'week', label: t('stats.week') },
+            { value: 'month', label: t('stats.month') },
+          ]}
+        />
+      }>
+      <DemoBanner />
+      <View className="flex-row items-end gap-3 pt-2">
+        <Text variant="hero" tabular>{pct === null ? '—' : `${pct}%`}</Text>
+        <View className="pb-1.5">
+          <Text variant="label">{t('stats.onTimeShort')}</Text>
+          <Text variant="caption" tone="muted">
+            {t('stats.ofTotalMosque', { count: onTimeCount(summary.total), total: summary.due })}
           </Text>
         </View>
-        <Text variant="muted">{t('stats.onTimeRateBody')}</Text>
-      </Card>
+      </View>
 
-      <View className="flex-row flex-wrap gap-3">
-        {KEYS.map((key) => (
-          <Card key={key} className="min-w-[45%] flex-1 gap-1">
-            <View className="flex-row items-center gap-2">
-              <View className={`size-3 rounded-full ${STATUS_STYLE[key].bg}`} />
-              <Text variant="muted">{t(`status.${key}Short`)}</Text>
+      <StackBar counts={summary.total} height={10} />
+
+      <View className="flex-row justify-between">
+        {KEYS.map((k) => (
+          <View key={k} className="flex-1 items-center gap-1" accessible accessibilityLabel={`${t(`status.${k}Short`)}: ${summary.total[k]}`}>
+            <View className={`size-9 items-center justify-center rounded-full ${TILE_BG[k]}`}>
+              <StatusIcon status={k} size={18} color={STATUS_STYLE[k].color} />
             </View>
-            <Text className="text-3xl font-bold tabular-nums">{summary.total[key]}</Text>
-            <Text variant="muted">{percent(summary.total[key], summary.due)}</Text>
-          </Card>
+            <Text variant="heading" tabular>{String(summary.total[k])}</Text>
+            <Text variant="micro" tone="muted" weight="regular">{t(`status.${k}Short`)}</Text>
+          </View>
         ))}
       </View>
 
-      <Card className="gap-3">
-        <Text variant="heading">{t('stats.perPrayer')}</Text>
+      <View className="gap-3 pt-2">
+        <Text variant="tiny" weight="semibold" tone="faint" style={{ letterSpacing: 0.7 }}>{t('stats.perPrayer')}</Text>
         {summary.due === 0 ? (
-          <Text variant="muted">{t('stats.noData')}</Text>
+          <Text variant="caption" tone="muted">{t('stats.noData')}</Text>
         ) : (
-          PRAYERS.map((p) => <PrayerBar key={p} label={t(`prayers.${p}`)} counts={summary.byPrayer[p]} />)
+          PRAYERS.map((p) => {
+            const counts = summary.byPrayer[p];
+            const due = KEYS.reduce((n, k) => n + counts[k], 0);
+            return (
+              <View key={p} className="flex-row items-center gap-2.5" accessible accessibilityLabel={`${t(`prayers.${p}`)}: ${onTimeCount(counts)}/${due}`}>
+                <Icon name={PRAYER_ICON[p]} size={18} color={c.muted} />
+                <Text variant="small" weight="semibold" className="w-[70px]">{t(`prayers.${p}`)}</Text>
+                <View className="flex-1">
+                  <StackBar counts={counts} height={8} />
+                </View>
+                <Text variant="caption" tone="muted" tabular className="w-11" align="end">{`${onTimeCount(counts)}/${due}`}</Text>
+              </View>
+            );
+          })
         )}
-      </Card>
+      </View>
 
-      <Card className="gap-3">
+      <View className="flex-row gap-2.5 pt-2">
+        <View className="flex-1 flex-row items-center gap-2.5 rounded-[18px] bg-accent-soft p-3.5 dark:bg-accent-soft-dark">
+          <Icon name="flame" size={26} color={c.accent} />
+          <View>
+            <Text variant="heading" tone="accent" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { n: current })}</Text>
+            <Text variant="tiny" tone="accent" weight="medium">{t('stats.currentStreak')}</Text>
+          </View>
+        </View>
+        <View className="flex-1 flex-row items-center gap-2.5 rounded-[18px] bg-chip p-3.5 dark:bg-chip-dark">
+          <Icon name="trophy" size={26} color={c.ink} />
+          <View>
+            <Text variant="heading" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { n: best })}</Text>
+            <Text variant="tiny" tone="muted" weight="medium">{t('stats.bestStreak')}</Text>
+          </View>
+        </View>
+      </View>
+
+      {insight.weakest || insight.strongest ? (
         <View className="flex-row items-center gap-2">
-          <Ionicons name="flame" size={20} color="#F97316" />
-          <Text variant="heading">{t('stats.streak')}</Text>
+          <Icon name={PRAYER_ICON[insight.weakest ?? insight.strongest ?? 'fajr']} size={16} color={STATUS_STYLE.late.color} strokeWidth={2} />
+          <Text variant="caption" tone="muted" className="flex-1">
+            {[
+              insight.strongest ? t('stats.strongest', { prayer: t(`prayers.${insight.strongest}`) }) : null,
+              insight.weakest ? t('stats.weakest', { prayer: t(`prayers.${insight.weakest}`) }) : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
         </View>
-        <Text variant="muted">{t('stats.streakBody')}</Text>
-        <View className="flex-row gap-3">
-          <StreakTile label={t('stats.currentStreak')} days={current} unit={t('stats.daysUnit')} />
-          <StreakTile label={t('stats.bestStreak')} days={best} unit={t('stats.daysUnit')} />
-        </View>
-      </Card>
-    </View>
+      ) : null}
+    </Screen>
   );
 }
 
-function PrayerBar({ label, counts }: { label: string; counts: StatusCounts }) {
-  const { t } = useTranslation();
-  const total = KEYS.reduce((n, k) => n + counts[k], 0);
+function StackBar({ counts, height }: { counts: StatusCounts; height: number }) {
   return (
-    <View className="gap-1">
-      <View className="flex-row justify-between">
-        <Text className="font-medium">{label}</Text>
-        <Text variant="muted" className="tabular-nums">
-          {t('stats.ofTotal', { count: onTimeCount(counts), total })}
-        </Text>
-      </View>
-      <View className="h-2.5 flex-row overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-        {KEYS.map((k) =>
-          counts[k] > 0 ? <View key={k} className={STATUS_STYLE[k].bg} style={{ flex: counts[k] }} /> : null,
-        )}
-      </View>
+    <View style={{ height, borderRadius: height / 2 }} className="flex-row overflow-hidden bg-chip dark:bg-chip-dark" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {KEYS.map((k) =>
+        counts[k] > 0 ? <View key={k} className={k === 'unmarked' ? 'bg-status-unmarked dark:bg-[#3A3A3E]' : STATUS_STYLE[k].bg} style={{ flex: counts[k] }} /> : null,
+      )}
     </View>
   );
-}
-
-function StreakTile({ label, days, unit }: { label: string; days: number; unit: string }) {
-  return (
-    <View className="flex-1 rounded-xl bg-orange-50 p-3 dark:bg-orange-950">
-      <Text variant="muted">{label}</Text>
-      <View className="flex-row items-baseline gap-1">
-        <Text className="text-3xl font-bold tabular-nums text-orange-600 dark:text-orange-400">{days}</Text>
-        <Text variant="muted">{unit}</Text>
-      </View>
-    </View>
-  );
-}
-
-function percent(n: number, total: number) {
-  return total === 0 ? '—' : `${Math.round((n / total) * 100)}%`;
 }

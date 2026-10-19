@@ -1,6 +1,4 @@
-export { DateHeader } from './components/date-header';
-export { NextPrayerCard } from './components/next-prayer-card';
-export { PrayerList } from './components/prayer-list';
+export { PRAYER_ICON, WINDOW_END } from './components/prayer-icon';
 export { usePrayerDays } from './hooks/use-prayer-days';
 export { usePrayerParams } from './hooks/use-prayer-params';
 export { usePrayerTimesSync } from './hooks/use-prayer-times-sync';
@@ -16,6 +14,13 @@ export {
   type PrayerWindow,
   type UpcomingPrayer,
 } from './model/timeline';
-export { PRAYERS, TIME_NAMES, type PrayerDay, type PrayerName, type TimeName } from './model/types';
+export {
+  PRAYERS,
+  TIME_NAMES,
+  type HijriDate,
+  type PrayerDay,
+  type PrayerName,
+  type TimeName,
+} from './model/types';
 export { usePrayerTimesStore } from './store/prayer-times-store';
 export { CALCULATION_METHODS, findMethod, type MethodOption } from './model/methods';

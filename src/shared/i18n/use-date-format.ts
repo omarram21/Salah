@@ -29,6 +29,13 @@ export function useDateFormat() {
       const { month: m, day } = parseDateKey(key);
       return `${weekdayShort(key)}${t('calendar.listSeparator')} ${day} ${monthShort(m)}`;
     },
+    /** "October" for a "YYYY-MM" month key */
+    monthName: (monthKey: string) => month(Number(monthKey.slice(5, 7))),
+    /** "Friday, 30 October" */
+    weekdayLong: (key: DateKey) => {
+      const { month: m, day } = parseDateKey(key);
+      return `${weekday(key)}${t('calendar.listSeparator')} ${day} ${month(m)}`;
+    },
     /** "October 2026" */
     monthYear: (key: DateKey) => {
       const { year, month: m } = parseDateKey(key);

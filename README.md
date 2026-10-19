@@ -18,12 +18,18 @@ npx expo lint
 
 ## Features
 
-- **Today** — Gregorian + Hijri date, live countdown to the next prayer, the five prayers with
-  one-tap status buttons, and a "Yesterday" card for anything left unmarked (incl. Isha after midnight).
-- **History** — every day since first use with a colored dot per prayer; tap a day to edit it.
-- **Stats** — this week / this month counts per status and per prayer, current and best on-time streak.
-- **Settings** — location, calculation method (automatic = AlAdhan's regional default), Asr method,
-  alarms per prayer, reminder before the time ends, Arabic/English (RTL), light/dark/system theme.
+Design "E": minimal, icon-led, Space Grotesk, one orange accent (light + dark).
+
+- **Today** — next prayer and a big countdown, today's ring and streak, the five prayers with
+  time-of-day icons. The current prayer shows four status buttons (🕌 ✓ 🕒 ✕); marked prayers show
+  one colored icon; upcoming prayers show their alarm bell (tap to toggle). A "Yesterday" card
+  asks about unmarked prayers (incl. Isha after midnight).
+- **History** — month calendar with 5 status dots per day and a selected-day panel; "Edit" opens
+  a one-prayer-at-a-time editor that advances after each pick.
+- **Stats** — week / month on-time % (mosque counts as on time), status counts, per-prayer bars,
+  current and best streak, and a short insight (strongest / weakest prayer).
+- **Settings** — grouped list; Alarms page previews when the next prayer and its reminder will ring,
+  with a test alarm and the scheduled-alarms list. Language (Arabic RTL), theme, demo data.
 - **Offline** — prayer times are fetched a month at a time from AlAdhan and cached; next month is
   prefetched during the last week of the current one.
 
@@ -33,18 +39,20 @@ npx expo lint
 src/
   app/            Expo Router routes only — thin screens that compose features
   features/
-    prayer-times/ AlAdhan → PrayerDay model, prayer windows, monthly cache, Today UI
+    prayer-times/ AlAdhan → PrayerDay model, prayer windows, monthly cache
+    today/        Today screen (composes prayer-times + tracking + settings)
     location/     GPS, built-in city list, free-text city lookup
     tracking/     status rules (pure), records store, status buttons/sheets, day editor
     notifications/ pure schedule builder + expo-notifications sync
-    history/      day list grouped by month
+    history/      month grid (pure) + calendar screen
     stats/        counts, ranges, streaks (pure) + Stats UI
     settings/     settings store (index.ts) and settings UI (ui.ts)
   shared/
     api/aladhan/  HTTP client + response types (no app logic)
     i18n/         en/ar strings, direction (RTL), date formatting
     lib/          date keys, formatting, storage keys, small hooks
-    ui/           Button, Card, Text, Input, Screen, SegmentedControl, state views
+    theme/        color tokens, fonts
+    ui/           Icon set, Text, Button, Switch, Screen, SegmentedControl, tab bar, state views
 ```
 
 Rules:

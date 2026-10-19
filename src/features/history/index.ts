@@ -1,2 +1,2 @@
-export { HistoryList } from './components/history-list';
-export { historySections, type HistorySection } from './logic/history-range';
+export { HistoryCalendar } from './components/history-calendar';
+export { monthBounds, monthGrid, weekdayOrder } from './logic/month-grid';

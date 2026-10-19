@@ -7,6 +7,12 @@ export function formatWallTime(wall: string, labels: { am: string; pm: string })
   return `${hour12}:${pad(m)} ${h < 12 ? labels.am : labels.pm}`;
 }
 
+/** "17:05" → "5:05" (12-hour, no AM/PM) for compact lists. */
+export function formatWallShort(wall: string): string {
+  const [h = 0, m = 0] = wall.split(':').map(Number);
+  return `${h % 12 === 0 ? 12 : h % 12}:${pad(m)}`;
+}
+
 /** Milliseconds → "1:05:09" or "05:09" when under an hour. */
 export function formatCountdown(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));

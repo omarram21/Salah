@@ -27,38 +27,37 @@ export function CustomCityForm({ onSelect }: { onSelect: (location: AppLocation)
   };
 
   return (
-    <Card className="gap-3">
-      <Text variant="heading">{t('location.otherCity')}</Text>
-      <Input placeholder={t('location.cityField')} value={city} onChangeText={setCity} />
+    <View className="gap-2.5">
+      <Input placeholder={t('location.cityField')} value={city} onChangeText={setCity} accessibilityLabel={t('location.cityField')} />
       <Input
         placeholder={t('location.countryField')}
         value={country}
         onChangeText={setCountry}
         returnKeyType="search"
         onSubmitEditing={find}
+        accessibilityLabel={t('location.countryField')}
       />
       <Button
-        label={state === 'loading' ? t('location.finding') : t('location.find')}
+        icon="search"
         variant="secondary"
+        label={state === 'loading' ? t('location.finding') : t('location.find')}
         loading={state === 'loading'}
         disabled={!city.trim() || !country.trim()}
         onPress={find}
       />
-      {state === 'error' ? (
-        <Text className="text-sm text-red-600 dark:text-red-400">{t('location.notFound')}</Text>
-      ) : null}
+      {state === 'error' ? <Text variant="caption" tone="none" style={{ color: '#DC2626' }}>{t('location.notFound')}</Text> : null}
       {result ? (
-        <View className="gap-2 rounded-xl bg-slate-100 p-3 dark:bg-slate-800">
-          <Text>
+        <Card className="gap-2">
+          <Text variant="small" weight="semibold">
             {t('location.found', {
               timezone: result.timezone,
               coords: `${result.location.latitude.toFixed(2)}, ${result.location.longitude.toFixed(2)}`,
             })}
           </Text>
-          <Text variant="muted">{t('location.foundHint')}</Text>
+          <Text variant="caption" tone="muted">{t('location.foundHint')}</Text>
           <Button label={t('location.useThis')} onPress={() => onSelect(result.location)} />
-        </View>
+        </Card>
       ) : null}
-    </Card>
+    </View>
   );
 }

@@ -9,3 +9,4 @@ export {
 } from './logic/counts';
 export { datesBetween, monthStart, weekStart } from './logic/ranges';
 export { bestStreak, currentStreak, isPerfectDay } from './logic/streak';
+export { prayerInsight, type Insight } from './logic/insights';

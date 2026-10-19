@@ -1,7 +1,10 @@
 export { Button } from './button';
-export { Card } from './card';
+export { Card, SectionLabel } from './card';
+export { Icon, type IconName } from './icon';
 export { Input } from './input';
 export { Screen } from './screen';
 export { SegmentedControl } from './segmented-control';
 export { ErrorView, LoadingView } from './state-views';
-export { Text } from './text';
+export { Switch } from './switch';
+export { IconTabBar } from './tab-bar';
+export { Text, type TextTone, type TextVariant } from './text';

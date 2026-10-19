@@ -1,5 +1,6 @@
 import '@/global.css';
 
+import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, LocaleProvider, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -16,30 +17,34 @@ import { useTrackingStore } from '@/features/tracking';
 import { directionOf, DirectionProvider } from '@/shared/i18n';
 import { dateKeyAt, deviceUtcOffsetMin } from '@/shared/lib/date-key';
 import { useHydrated } from '@/shared/lib/use-hydrated';
+import { APP_FONTS } from '@/shared/theme/fonts';
 
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(APP_FONTS);
   const hydrated = [
     useHydrated(useSettingsStore),
     useHydrated(useLocationStore),
     useHydrated(usePrayerTimesStore),
     useHydrated(useTrackingStore),
   ].every(Boolean);
+  // A font failure falls back to the system font rather than blocking the app.
+  const ready = hydrated && (fontsLoaded || !!fontError);
 
   useEffect(() => {
-    if (hydrated) void SplashScreen.hideAsync();
-  }, [hydrated]);
+    if (ready) void SplashScreen.hideAsync();
+  }, [ready]);
 
-  if (!hydrated) return null;
+  if (!ready) return null;
   return <App />;
 }
 
-/** Rendered only after persisted stores have loaded. */
+/** Rendered only after persisted stores and fonts have loaded. */
 function App() {
   const language = useSettingsStore((s) => s.language);
-  const { t, i18n } = useTranslation();
-  const { isDark, colors, palette } = useAppTheme();
+  const { i18n } = useTranslation();
+  const { isDark, colors } = useAppTheme();
   const direction = directionOf(language);
 
   usePrayerTimesSync();
@@ -58,11 +63,11 @@ function App() {
     ...base,
     colors: {
       ...base.colors,
-      primary: palette.primary,
-      background: colors.background,
-      card: colors.card,
-      text: colors.text,
-      border: colors.border,
+      primary: colors.accent,
+      background: colors.paper,
+      card: colors.paper,
+      text: colors.ink,
+      border: colors.line,
     },
   };
 
@@ -72,17 +77,10 @@ function App() {
         <ThemeProvider value={navTheme}>
           <StatusBar style={isDark ? 'light' : 'dark'} />
           <View style={{ flex: 1, direction }}>
-            <Stack screenOptions={{ headerShown: false, headerBackButtonDisplayMode: 'minimal' }}>
+            {/* Every screen draws its own E-style header. */}
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
               <Stack.Screen name="(tabs)" />
-              <Stack.Screen
-                name="location"
-                options={{ presentation: 'modal', headerShown: true, title: t('location.title') }}
-              />
-              <Stack.Screen
-                name="calculation-method"
-                options={{ presentation: 'modal', headerShown: true, title: t('settings.calculationMethod') }}
-              />
-              <Stack.Screen name="day/[date]" options={{ headerShown: true, title: t('tracking.editDayTitle') }} />
+              <Stack.Screen name="location" options={{ presentation: 'modal' }} />
             </Stack>
           </View>
         </ThemeProvider>

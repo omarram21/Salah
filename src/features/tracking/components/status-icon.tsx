@@ -1,17 +1,10 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Icon } from '@/shared/ui';
 
-import type { PrayerStatus } from '../logic/types';
+import type { StatusKey } from './status-style';
 import { STATUS_STYLE } from './status-style';
 
-type Props = { status: PrayerStatus | 'unmarked'; size: number; color?: string };
+type Props = { status: StatusKey; size: number; color?: string };
 
-/** Status glyph; the mosque icon comes from a different icon set than the others. */
-export function StatusIcon({ status, size, color = '#fff' }: Props) {
-  const { icon } = STATUS_STYLE[status];
-  return icon.family === 'mci' ? (
-    <MaterialCommunityIcons name={icon.name} size={size} color={color} />
-  ) : (
-    <Ionicons name={icon.name} size={size} color={color} />
-  );
+export function StatusIcon({ status, size, color = '#FFFFFF' }: Props) {
+  return <Icon name={STATUS_STYLE[status].icon} size={size} color={color} strokeWidth={2.2} />;
 }

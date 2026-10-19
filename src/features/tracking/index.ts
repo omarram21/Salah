@@ -1,11 +1,13 @@
-export { DayEditor } from './components/day-editor';
+export { DayStepper } from './components/day-stepper';
 export { DemoBanner } from './components/demo-banner';
-export { PrayerStatusControl } from './components/prayer-status-control';
+export { StatusCircle } from './components/status-circle';
 export { StatusDot } from './components/status-dot';
 export { StatusIcon } from './components/status-icon';
-export { STATUS_STYLE } from './components/status-style';
+export { StatusQuickPicker } from './components/status-quick-picker';
+export { STATUS_STYLE, type StatusKey } from './components/status-style';
 export { YesterdayCard } from './components/yesterday-card';
 export { DEMO_DAYS, generateDemoDataset } from './demo/generate-demo';
+export { usePrayerStatus } from './hooks/use-prayer-status';
 export { unmarkedStartedPrayers } from './logic/pending';
 export { getTiming, resolveTap, suggestStatus, type PrayerTiming } from './logic/status';
 export {
