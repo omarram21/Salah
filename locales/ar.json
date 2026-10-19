@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "حيّ",
+    "NSLocationWhenInUseUsageDescription": "يستخدم حيّ موقعك لحساب مواقيت الصلاة بدقة."
+  },
+  "android": {
+    "app_name": "حيّ"
+  }
+}

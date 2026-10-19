@@ -2,7 +2,7 @@
 # Sign/install it yourself with a free Apple ID using a sideloading tool (e.g. Sideloadly, AltStore).
 #
 # Runs on every push to master that touches the app, or manually: Actions → "iOS unsigned IPA" → Run workflow.
-# Download the "Salah-unsigned-ipa" artifact when done.
+# Download the "Hayya-unsigned-ipa" artifact when done.
 name: iOS unsigned IPA
 
 on:
@@ -14,6 +14,7 @@ on:
       - 'src/**'
       - 'assets/**'
       - 'app.json'
+      - 'locales/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/ios-unsigned-ipa.yml'
@@ -45,8 +46,8 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild \
-            -workspace ios/Salah.xcworkspace \
-            -scheme Salah \
+            -workspace ios/Hayya.xcworkspace \
+            -scheme Hayya \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
@@ -55,17 +56,17 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             | tail -n 50
-          test -d build/Build/Products/Release-iphoneos/Salah.app
+          test -d build/Build/Products/Release-iphoneos/Hayya.app
 
       - name: Package .ipa
         run: |
           mkdir Payload
-          cp -R build/Build/Products/Release-iphoneos/Salah.app Payload/
-          zip -qry Salah-unsigned.ipa Payload
-          ls -lh Salah-unsigned.ipa
+          cp -R build/Build/Products/Release-iphoneos/Hayya.app Payload/
+          zip -qry Hayya-unsigned.ipa Payload
+          ls -lh Hayya-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Salah-unsigned-ipa
-          path: Salah-unsigned.ipa
+          name: Hayya-unsigned-ipa
+          path: Hayya-unsigned.ipa
           retention-days: 14

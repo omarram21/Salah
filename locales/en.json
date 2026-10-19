@@ -1,0 +1,8 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Hayya"
+  },
+  "android": {
+    "app_name": "Hayya"
+  }
+}

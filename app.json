@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Salah",
+    "name": "Hayya",
     "slug": "salah",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,12 +8,11 @@
     "scheme": "salah",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.salah.prayertracker"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0F766E",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -35,16 +34,20 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 140,
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#0B0B0C"
+          }
         }
       ],
       "expo-localization",
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Salah uses your location to calculate accurate prayer times."
+          "locationWhenInUsePermission": "Hayya uses your location to calculate accurate prayer times."
         }
       ],
       [
@@ -66,6 +69,10 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "locales": {
+      "en": "./locales/en.json",
+      "ar": "./locales/ar.json"
     }
   }
 }

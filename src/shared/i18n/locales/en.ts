@@ -263,7 +263,8 @@ export const en = {
     expoGoNote: 'Custom sounds play in the installed app. Expo Go uses the phone’s default sound.',
   },
   welcome: {
-    title: 'Salah',
+    title: 'Hayya',
+    titleAr: 'حيّ على الصلاة',
     body: 'Five prayers, on time. Times for where you are, a gentle alarm, and one tap to track.',
     f1Title: 'Accurate times',
     f1Body: 'Your region’s method, saved for offline',

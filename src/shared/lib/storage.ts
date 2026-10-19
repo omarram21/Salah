@@ -4,7 +4,10 @@ import { createJSONStorage } from 'zustand/middleware';
 /** Shared AsyncStorage adapter for persisted Zustand stores. */
 export const zustandStorage = createJSONStorage(() => AsyncStorage);
 
-/** Storage keys live here so they never collide across features. */
+/**
+ * Storage keys live here so they never collide across features.
+ * The "salah." prefix predates the app's name (Hayya); keep it, or saved data is lost.
+ */
 export const STORAGE_KEYS = {
   settings: 'salah.settings.v1',
   location: 'salah.location.v1',

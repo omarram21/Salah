@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDirection } from '@/shared/i18n';
@@ -10,7 +10,6 @@ import { Button, Icon, type IconName, Text } from '@/shared/ui';
 import { useGpsLocation } from '../hooks/use-gps-location';
 import { GpsStatusMessage } from './gps-status-message';
 
-const DAY: IconName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 const FEATURES: { icon: IconName; title: 'welcome.f1Title' | 'welcome.f2Title' | 'welcome.f3Title'; body: 'welcome.f1Body' | 'welcome.f2Body' | 'welcome.f3Body' }[] = [
   { icon: 'timer', title: 'welcome.f1Title', body: 'welcome.f1Body' },
   { icon: 'bell', title: 'welcome.f2Title', body: 'welcome.f2Body' },
@@ -20,19 +19,23 @@ const FEATURES: { icon: IconName; title: 'welcome.f1Title' | 'welcome.f2Title' |
 /** First launch: what the app does, then share location or pick a city. */
 export function WelcomeView() {
   const { t } = useTranslation();
-  const { c } = useThemeColors();
+  const { c, isDark } = useThemeColors();
   const { direction } = useDirection();
   const gps = useGpsLocation();
 
   return (
     <SafeAreaView className="flex-1 bg-paper px-6 dark:bg-paper-dark" style={{ direction }}>
-      <View className="flex-row gap-2.5 pt-14">
-        {DAY.map((icon, i) => (
-          <Icon key={icon} name={icon} size={34} strokeWidth={1.6} color={i === 0 ? c.accent : c.ink} />
-        ))}
-      </View>
-      <Text variant="display" className="mt-9" accessibilityRole="header">
+      <Image
+        source={isDark ? require('../../../../assets/images/logo-mark-dark.png') : require('../../../../assets/images/logo-mark.png')}
+        accessibilityIgnoresInvertColors
+        accessible={false}
+        style={{ width: 96, height: 96, marginTop: 40, marginStart: -14 }}
+      />
+      <Text variant="display" className="mt-3" accessibilityRole="header">
         {t('welcome.title')}
+      </Text>
+      <Text variant="body" tone="accent" weight="semibold" className="mt-1">
+        {t('welcome.titleAr')}
       </Text>
       <Text variant="body" tone="muted" className="mt-3" style={{ fontSize: 17, lineHeight: 25 }}>
         {t('welcome.body')}

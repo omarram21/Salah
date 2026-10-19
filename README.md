@@ -1,6 +1,6 @@
-# Salah — Prayer Tracker
+# Hayya (حيّ) — Prayer Tracker
 
-Expo (SDK 57) + React Native + TypeScript app that shows the five daily prayer times, sends alarms,
+**Hayya** — from the adhan's *“Hayya ʿala-s-salah”* (come to prayer). Expo (SDK 57) + React Native + TypeScript app that shows the five daily prayer times, sends alarms,
 and tracks whether each prayer was prayed on time, late, or not at all.
 
 > Pinned to SDK 57 because Expo Go for SDK 58 is not yet on the App Store / Play Store.
@@ -76,3 +76,11 @@ Rules:
   whenever times, settings, language or marks change.
 - **RTL** uses the `direction` style + expo-router's `LocaleProvider` instead of
   `I18nManager.forceRTL`, so it switches instantly and works in Expo Go.
+
+## Brand assets
+
+- App icon, Android adaptive icon, splash and in-app logo are the «حي» monogram in Reem Kufi with an
+  orange sun in place of the shadda. They're PNGs in `assets/images/`.
+- Home-screen name: `Hayya` / `حيّ` via `app.json → locales` (`locales/en.json`, `locales/ar.json`).
+- Bundle IDs, slug and storage keys still say `salah`; changing them would install a separate app
+  and lose saved data.

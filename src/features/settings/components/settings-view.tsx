@@ -76,7 +76,7 @@ export function SettingsView() {
           }
         />
         {isDemo ? <SettingsRow icon="trash" label={t('settings.resetDemo')} onPress={() => resetDemo(deviceToday())} /> : null}
-        <SettingsRow icon="info" label={t('settings.about')} value={`v${version}`} />
+        <SettingsRow icon="info" label={t('settings.about')} value={`${t('welcome.title')} ${version}`} />
       </SettingsGroup>
 
       <View className="items-center gap-1 pb-4 pt-6">
