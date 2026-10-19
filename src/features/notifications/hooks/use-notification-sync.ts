@@ -12,10 +12,11 @@ import { notificationContent } from '../logic/content';
 import {
   cancelPrayerAlarms,
   configureNotificationHandler,
-  ensureChannel,
+  ensureChannels,
   getPermission,
   replaceSchedule,
 } from '../services/notification-service';
+import { channelNames } from '../logic/channel-names';
 import { useNotificationPermission } from '../store/permission-store';
 
 configureNotificationHandler();
@@ -46,7 +47,7 @@ export function useNotificationSync() {
           await cancelPrayerAlarms();
           return;
         }
-        await ensureChannel(t('alarms.channelName'));
+        await ensureChannels(channelNames(t));
         const permission = await getPermission({ prompt: index.size > 0 });
         if (cancelled) return;
         setPermission(permission);
@@ -55,12 +56,12 @@ export function useNotificationSync() {
         const now = Date.now();
         const today = locationToday(index, now, deviceUtcOffsetMin(now));
         const plans = buildSchedule({ index, records, prefs, now, today });
-        const signature = `${i18n.language}|${plans.map((p) => `${p.id}@${p.at}`).join(',')}`;
+        const signature = `${i18n.language}|${prefs.sound}|${plans.map((p) => `${p.id}@${p.at}`).join(',')}`;
         if (signature === lastSignature.current) return;
 
         const contentFor = (plan: PlannedNotification) =>
           notificationContent(plan, { t, index, reminderMinutes: prefs.reminderMinutes });
-        await replaceSchedule(plans, contentFor);
+        await replaceSchedule(plans, contentFor, prefs.sound);
         lastSignature.current = signature;
       } catch (e) {
         // Scheduling is best-effort; the next trigger will retry.

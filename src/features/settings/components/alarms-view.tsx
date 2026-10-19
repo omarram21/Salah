@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import { TEST_REMINDER_SECONDS, TEST_START_SECONDS, useTestAlarm } from '@/features/notifications';
 import { getPrayerWindow, PRAYER_ICON, PRAYERS, WINDOW_END, useToday, type PrayerName } from '@/features/prayer-times';
 import { formatWallShort } from '@/shared/lib/format';
+import { useDirection } from '@/shared/i18n';
 import { useThemeColors } from '@/shared/theme/use-theme-colors';
 import { Button, Card, Icon, Screen, Switch, Text } from '@/shared/ui';
 
@@ -19,6 +20,7 @@ const wallOf = (ms: number, offsetMin: number) => {
 export function AlarmsView() {
   const { t } = useTranslation();
   const { c } = useThemeColors();
+  const { isRTL } = useDirection();
   const alarms = useSettingsStore((s) => s.alarms);
   const update = useSettingsStore((s) => s.updateAlarms);
   const setPrayerAlarm = useSettingsStore((s) => s.setPrayerAlarm);
@@ -78,6 +80,17 @@ export function AlarmsView() {
             </Text>
           </Card>
         ) : null}
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('sounds.title')}, ${t(`sounds.${alarms.sound}`)}`}
+          onPress={() => router.push('/alarm-sound')}
+          className="min-h-[56px] flex-row items-center gap-3 rounded-[18px] bg-well px-4 active:opacity-70 dark:bg-well-dark">
+          <Icon name="music" size={20} color={c.ink} />
+          <Text variant="label" className="flex-1">{t('sounds.title')}</Text>
+          <Text variant="small" tone="muted">{t(`sounds.${alarms.sound}`)}</Text>
+          <Icon name="chevronRight" size={16} color="#B4B4AF" strokeWidth={2} flip={isRTL} />
+        </Pressable>
 
         <View className="gap-2.5">
           <View className="flex-row items-center gap-3">

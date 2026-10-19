@@ -6,7 +6,8 @@ import { useSettingsStore } from '@/features/settings';
 import { deviceUtcOffsetMin } from '@/shared/lib/date-key';
 
 import { notificationContent } from '../logic/content';
-import { ensureChannel, getPermission, scheduleTestAlarms } from '../services/notification-service';
+import { channelNames } from '../logic/channel-names';
+import { ensureChannels, getPermission, scheduleTestAlarms } from '../services/notification-service';
 import { useNotificationPermission } from '../store/permission-store';
 
 export const TEST_START_SECONDS = 5;
@@ -17,11 +18,12 @@ export function useTestAlarm() {
   const { t } = useTranslation();
   const { index } = usePrayerDays(usePrayerParams());
   const reminderMinutes = useSettingsStore((s) => s.alarms.reminderMinutes);
+  const sound = useSettingsStore((s) => s.alarms.sound);
   const setPermission = useNotificationPermission((s) => s.setStatus);
   const [state, setState] = useState<'idle' | 'sent' | 'denied'>('idle');
 
   const send = async () => {
-    await ensureChannel(t('alarms.channelName'));
+    await ensureChannels(channelNames(t));
     const permission = await getPermission({ prompt: true });
     setPermission(permission);
     if (permission !== 'granted') {
@@ -36,10 +38,13 @@ export function useTestAlarm() {
     const start = notificationContent({ ...plan, kind: 'start' }, { t, index, reminderMinutes });
     const reminder = notificationContent({ ...plan, kind: 'reminder' }, { t, index, reminderMinutes });
 
-    await scheduleTestAlarms([
-      { content: { ...start, title: test(start.title) }, inSeconds: TEST_START_SECONDS },
-      { content: { ...reminder, title: test(reminder.title) }, inSeconds: TEST_REMINDER_SECONDS },
-    ]);
+    await scheduleTestAlarms(
+      [
+        { kind: 'start', content: { ...start, title: test(start.title) }, inSeconds: TEST_START_SECONDS },
+        { kind: 'reminder', content: { ...reminder, title: test(reminder.title) }, inSeconds: TEST_REMINDER_SECONDS },
+      ],
+      sound,
+    );
     setState('sent');
   };
 

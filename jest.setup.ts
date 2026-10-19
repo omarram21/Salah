@@ -16,6 +16,7 @@ jest.mock('expo-notifications', () => ({
   SchedulableTriggerInputTypes: { DATE: 'date', TIME_INTERVAL: 'timeInterval' },
   setNotificationHandler: jest.fn(),
   setNotificationChannelAsync: jest.fn(async () => null),
+  deleteNotificationChannelAsync: jest.fn(async () => undefined),
   getPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted', canAskAgain: true })),
   requestPermissionsAsync: jest.fn(async () => ({ granted: true, status: 'granted' })),
   cancelAllScheduledNotificationsAsync: jest.fn(async () => undefined),
@@ -27,3 +28,12 @@ jest.mock('expo-notifications', () => ({
 // On device, the compiled global.css registers `darkMode: class` (from tailwind.config.js).
 // Jest mocks CSS out, so register the flag manually.
 require('react-native-css-interop').StyleSheet.registerCompiled({ flags: { darkMode: 'class' } });
+
+jest.mock('expo-audio', () => {
+  const player = { play: jest.fn(), remove: jest.fn(), addListener: jest.fn(() => ({ remove: jest.fn() })) };
+  return {
+    createAudioPlayer: jest.fn(() => player),
+    setAudioModeAsync: jest.fn(async () => undefined),
+    __player: player,
+  };
+});

@@ -21,7 +21,12 @@ export type AlarmPrefs = {
   /** Reminder before the prayer's time ends, only if it isn't marked yet. */
   reminderEnabled: boolean;
   reminderMinutes: number;
+  sound: AlarmSound;
 };
+
+/** Sound for the alarm at the start of a prayer. Files live in assets/sounds (scripts/generate-sounds.py). */
+export const ALARM_SOUNDS = ['oud', 'bell', 'chime', 'dawn', 'default'] as const;
+export type AlarmSound = (typeof ALARM_SOUNDS)[number];
 
 export const REMINDER_MINUTE_OPTIONS = [10, 15, 20, 30, 45] as const;
 
@@ -30,6 +35,7 @@ export const DEFAULT_ALARMS: AlarmPrefs = {
   prayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true },
   reminderEnabled: true,
   reminderMinutes: 20,
+  sound: 'oud',
 };
 
 export type SettingsState = {

@@ -35,7 +35,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#0F766E",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -50,9 +50,18 @@
       [
         "expo-notifications",
         {
-          "color": "#0F766E"
+          "color": "#C2410C",
+          "sounds": [
+            "./assets/sounds/oud.wav",
+            "./assets/sounds/bell.wav",
+            "./assets/sounds/chime.wav",
+            "./assets/sounds/dawn.wav",
+            "./assets/sounds/reminder.wav"
+          ]
         }
-      ]
+      ],
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -9,7 +9,7 @@ import { useLocationStore } from '@/features/location';
 import { usePrayerTimesStore } from '@/features/prayer-times';
 import { cairo, cairoNovHead, cairoOctTail } from '@/features/prayer-times/model/__fixtures__/cairo';
 import { cacheKey } from '@/features/prayer-times/store/prayer-times-store';
-import { useSettingsStore } from '@/features/settings';
+import { DEFAULT_ALARMS, useSettingsStore } from '@/features/settings';
 import { selectRecords, useTrackingStore } from '@/features/tracking';
 
 const PK = '30.044,31.236|mauto|s0';
@@ -17,7 +17,12 @@ const records = () => selectRecords(useTrackingStore.getState());
 const NOW = cairo('2026-10-31T15:30', 2); // during Asr, 31 Oct
 
 function seed({ withLocation = true, withData = true } = {}) {
-  useSettingsStore.setState({ language: 'en', calculationMethod: 'auto', asrMethod: 'shafi' });
+  useSettingsStore.setState({
+    language: 'en',
+    calculationMethod: 'auto',
+    asrMethod: 'shafi',
+    alarms: DEFAULT_ALARMS,
+  });
   useLocationStore.setState({
     location: withLocation
       ? { source: 'city', cityId: 'cairo', latitude: 30.044, longitude: 31.236, label: 'Cairo, Egypt' }
@@ -146,7 +151,26 @@ describe('app', () => {
     await waitFor(() => expect(Notifications.scheduleNotificationAsync).toHaveBeenCalled(), {
       timeout: 3000,
     });
-    expect((Notifications.scheduleNotificationAsync as jest.Mock).mock.calls.length).toBeLessThanOrEqual(60);
+    const calls = (Notifications.scheduleNotificationAsync as jest.Mock).mock.calls.map((c) => c[0]);
+    expect(calls.length).toBeLessThanOrEqual(60);
+    // Default sound is the oud; reminders use the soft knock on their own channel.
+    const start = calls.find((c) => c.identifier.endsWith(':start'));
+    const reminder = calls.find((c) => c.identifier.endsWith(':reminder'));
+    expect(start.content.sound).toBe('oud.wav');
+    expect(start.trigger.channelId).toBe('prayer-oud');
+    expect(reminder.content.sound).toBe('reminder.wav');
+    expect(reminder.trigger.channelId).toBe('prayer-reminder');
+  });
+
+  it('Sound page: previews a sound and saves the choice', async () => {
+    const audio = jest.requireMock('expo-audio');
+    seed();
+    renderRouter('./src/app', { initialUrl: '/alarm-sound' });
+    fireEvent.press(await screen.findByLabelText('Play Bell'));
+    expect(audio.createAudioPlayer).toHaveBeenCalled();
+    expect(audio.__player.play).toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Bell'));
+    expect(useSettingsStore.getState().alarms.sound).toBe('bell');
   });
 
   it('History: calendar → select a day → edit it one prayer at a time', async () => {

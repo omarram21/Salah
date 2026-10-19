@@ -112,6 +112,9 @@ const ICONS = {
   ),
   trash: <Path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />,
   cloudOff: <Path d="M3 3l18 18M17.5 17.5H7a4.5 4.5 0 0 1-1.2-8.8M9.5 5.6A6 6 0 0 1 18 10a4 4 0 0 1 2.5 6.6" />,
+  play: <Path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />,
+  stop: <Rect x={7} y={7} width={10} height={10} rx={2} fill="currentColor" />,
+  music: <Path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />,
   unmarked: <Circle cx={12} cy={12} r={8} strokeDasharray="3 3" />,
 } satisfies Record<string, ReactNode>;
 

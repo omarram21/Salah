@@ -1,10 +1,14 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { ALARM_SOUNDS, type AlarmSound } from '@/features/settings';
+
 import type { PlannedNotification } from '../logic/build-schedule';
 import type { NotificationContent } from '../logic/content';
+import { channelFor, contentSound, REMINDER_FILE, SOUND_FILE } from '../sounds';
 
-export const CHANNEL_ID = 'prayer-times';
+/** Channel used before custom sounds existed; removed so Android settings stay tidy. */
+const LEGACY_CHANNEL_ID = 'prayer-times';
 /** Test alarms use this id prefix so rescheduling never cancels them. */
 export const TEST_ID_PREFIX = 'test:';
 
@@ -22,16 +26,24 @@ export function configureNotificationHandler() {
   });
 }
 
-/** Android needs a channel before notifications (and the Android 13+ permission prompt). */
-export async function ensureChannel(name: string) {
+/**
+ * Android needs channels before notifications (and the Android 13+ permission prompt).
+ * One channel per sound, because a channel's sound can't change after creation.
+ */
+export async function ensureChannels(names: { alarm: (sound: AlarmSound) => string; reminder: string }) {
   if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
-    name,
-    importance: Notifications.AndroidImportance.HIGH,
-    sound: 'default',
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#0F766E',
-  });
+  const base = { importance: Notifications.AndroidImportance.HIGH, vibrationPattern: [0, 250, 250, 250], lightColor: '#C2410C' };
+  await Promise.all([
+    ...ALARM_SOUNDS.map((sound) =>
+      Notifications.setNotificationChannelAsync(channelFor('start', sound), {
+        ...base,
+        name: names.alarm(sound),
+        sound: sound === 'default' ? 'default' : SOUND_FILE[sound],
+      }),
+    ),
+    Notifications.setNotificationChannelAsync(channelFor('reminder', 'default'), { ...base, name: names.reminder, sound: REMINDER_FILE }),
+    Notifications.deleteNotificationChannelAsync(LEGACY_CHANNEL_ID).catch(() => undefined),
+  ]);
 }
 
 export async function getPermission({ prompt }: { prompt: boolean }): Promise<PermissionStatus> {
@@ -56,6 +68,7 @@ export async function cancelPrayerAlarms() {
 export async function replaceSchedule(
   plans: PlannedNotification[],
   contentFor: (plan: PlannedNotification) => NotificationContent,
+  sound: AlarmSound,
 ) {
   await cancelPrayerAlarms();
   for (const plan of plans) {
@@ -65,29 +78,32 @@ export async function replaceSchedule(
       content: {
         title,
         body,
-        sound: true,
+        sound: contentSound(plan.kind, sound),
         data: { date: plan.date, prayer: plan.prayer, kind: plan.kind, at: plan.at },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: new Date(plan.at),
-        channelId: CHANNEL_ID,
+        channelId: channelFor(plan.kind, sound),
       },
     });
   }
 }
 
 /** Fires `items` after the given delays, for checking sound/banners right away. */
-export async function scheduleTestAlarms(items: { content: NotificationContent; inSeconds: number }[]) {
+export async function scheduleTestAlarms(
+  items: { content: NotificationContent; inSeconds: number; kind: 'start' | 'reminder' }[],
+  sound: AlarmSound,
+) {
   await Promise.all(
-    items.map(({ content, inSeconds }, i) =>
+    items.map(({ content, inSeconds, kind }, i) =>
       Notifications.scheduleNotificationAsync({
         identifier: `${TEST_ID_PREFIX}${Date.now()}-${i}`,
-        content: { ...content, sound: true, data: { test: true, at: Date.now() + inSeconds * 1000 } },
+        content: { ...content, sound: contentSound(kind, sound), data: { test: true, at: Date.now() + inSeconds * 1000 } },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: inSeconds,
-          channelId: CHANNEL_ID,
+          channelId: channelFor(kind, sound),
         },
       }),
     ),
