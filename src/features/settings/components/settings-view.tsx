@@ -5,7 +5,9 @@ import { Linking, View } from 'react-native';
 import { useLocationLabel, useLocationStore } from '@/features/location';
 import { useNotificationPermission } from '@/features/notifications';
 import { findMethod, PRAYERS, usePrayerDays, usePrayerParams } from '@/features/prayer-times';
+import { DEMO_DAYS, selectIsDemo, useTrackingStore } from '@/features/tracking';
 import { currentLanguage } from '@/shared/i18n';
+import { dateKeyAt, deviceUtcOffsetMin } from '@/shared/lib/date-key';
 import { Button, SegmentedControl, Text } from '@/shared/ui';
 
 import { REMINDER_MINUTE_OPTIONS, useSettingsStore } from '../store/settings-store';
@@ -21,6 +23,9 @@ export function SettingsView() {
   const locationLabel = useLocationLabel(location);
   const { method: detected } = usePrayerDays(usePrayerParams());
   const permission = useNotificationPermission((st) => st.status);
+  const isDemo = useTrackingStore(selectIsDemo);
+  const { enableDemo, disableDemo, resetDemo } = useTrackingStore();
+  const deviceToday = () => dateKeyAt(Date.now(), deviceUtcOffsetMin());
 
   const methodLabel =
     s.calculationMethod === 'auto'
@@ -117,6 +122,20 @@ export function SettingsView() {
             ]}
           />
         </ControlRow>
+      </SettingsSection>
+
+      <SettingsSection title={t('settings.sectionDeveloper')}>
+        <SwitchRow
+          label={t('settings.demoMode')}
+          description={t('settings.demoModeBody', { days: DEMO_DAYS })}
+          value={isDemo}
+          onChange={(on) => (on ? enableDemo(deviceToday()) : disableDemo())}
+        />
+        {isDemo ? (
+          <View className="px-4 py-3">
+            <Button variant="secondary" label={t('settings.resetDemo')} onPress={() => resetDemo(deviceToday())} />
+          </View>
+        ) : null}
       </SettingsSection>
 
       <Text variant="muted" align="center">

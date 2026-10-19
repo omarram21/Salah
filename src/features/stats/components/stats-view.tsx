@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { PRAYERS, type DayIndex } from '@/features/prayer-times';
-import { STATUS_STYLE } from '@/features/tracking';
+import { STATUS_STYLE, STATUSES } from '@/features/tracking';
 import type { DateKey } from '@/shared/lib/date-key';
 import { Card, SegmentedControl, Text } from '@/shared/ui';
 
 import { useStats, type StatsPeriod } from '../hooks/use-stats';
-import type { StatusCounts, StatusKey } from '../logic/counts';
+import { onTimeCount, type StatusCounts, type StatusKey } from '../logic/counts';
 
-const KEYS: StatusKey[] = ['onTime', 'late', 'missed', 'unmarked'];
+const KEYS: StatusKey[] = [...STATUSES, 'unmarked'];
 
 type Props = { index: DayIndex; now: number; today: DateKey };
 
@@ -30,6 +30,19 @@ export function StatsView({ index, now, today }: Props) {
           { value: 'month', label: t('stats.thisMonth') },
         ]}
       />
+
+      <Card className="gap-1">
+        <Text variant="muted">{t('stats.onTimeRate')}</Text>
+        <View className="flex-row items-baseline gap-2">
+          <Text className="text-4xl font-bold tabular-nums text-status-onTime">
+            {percent(onTimeCount(summary.total), summary.due)}
+          </Text>
+          <Text variant="muted" className="tabular-nums">
+            {t('stats.ofTotal', { count: onTimeCount(summary.total), total: summary.due })}
+          </Text>
+        </View>
+        <Text variant="muted">{t('stats.onTimeRateBody')}</Text>
+      </Card>
 
       <View className="flex-row flex-wrap gap-3">
         {KEYS.map((key) => (
@@ -76,7 +89,7 @@ function PrayerBar({ label, counts }: { label: string; counts: StatusCounts }) {
       <View className="flex-row justify-between">
         <Text className="font-medium">{label}</Text>
         <Text variant="muted" className="tabular-nums">
-          {t('stats.ofTotal', { count: counts.onTime, total })}
+          {t('stats.ofTotal', { count: onTimeCount(counts), total })}
         </Text>
       </View>
       <View className="h-2.5 flex-row overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">

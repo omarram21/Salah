@@ -4,6 +4,7 @@ import { Pressable } from 'react-native';
 
 import type { PrayerTiming } from '../logic/status';
 import type { PrayerRecord } from '../logic/types';
+import { StatusIcon } from './status-icon';
 import { STATUS_STYLE } from './status-style';
 
 type Props = {
@@ -29,7 +30,7 @@ export function StatusBadge({ record, timing, onPress, onLongPress, prayerLabel 
         onLongPress={onLongPress}
         hitSlop={8}
         className={`size-10 items-center justify-center rounded-full active:opacity-70 ${s.bg}`}>
-        <Ionicons name={s.icon} size={22} color="#fff" />
+        <StatusIcon status={record.status} size={22} />
       </Pressable>
     );
   }

@@ -7,7 +7,7 @@ import { Button, Card, Text } from '@/shared/ui';
 
 import { unmarkedStartedPrayers } from '../logic/pending';
 import { getTiming } from '../logic/status';
-import { useTrackingStore } from '../store/tracking-store';
+import { selectRecords, selectTrackingSince, useTrackingStore } from '../store/tracking-store';
 import { PrayerStatusControl } from './prayer-status-control';
 
 type Props = { index: DayIndex; now: number; today: DateKey };
@@ -19,8 +19,8 @@ type Props = { index: DayIndex; now: number; today: DateKey };
 export function YesterdayCard({ index, now, today }: Props) {
   const { t } = useTranslation();
   const yesterday = addDays(today, -1);
-  const records = useTrackingStore((s) => s.records);
-  const trackingSince = useTrackingStore((s) => s.trackingSince);
+  const records = useTrackingStore(selectRecords);
+  const trackingSince = useTrackingStore(selectTrackingSince);
   const setStatuses = useTrackingStore((s) => s.setStatuses);
 
   if (!trackingSince || yesterday < trackingSince) return null;

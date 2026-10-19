@@ -6,14 +6,14 @@ import { formatWallTime } from '@/shared/lib/format';
 import type { DateKey } from '@/shared/lib/date-key';
 import { Card, Text } from '@/shared/ui';
 
-import { useTrackingStore } from '../store/tracking-store';
+import { selectRecords, useTrackingStore } from '../store/tracking-store';
 import { StatusOptions } from './status-options';
 
 /** Edit all five statuses for any date (used from History). */
 export function DayEditor({ date, index }: { date: DateKey; index: DayIndex }) {
   const { t } = useTranslation();
   const day = index.get(date);
-  const records = useTrackingStore((s) => s.records[date]);
+  const records = useTrackingStore((s) => selectRecords(s)[date]);
   const setStatus = useTrackingStore((s) => s.setStatus);
   const clearStatus = useTrackingStore((s) => s.clearStatus);
   const labels = { am: t('common.am'), pm: t('common.pm') };

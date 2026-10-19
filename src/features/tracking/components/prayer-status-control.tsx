@@ -7,7 +7,7 @@ import type { DateKey } from '@/shared/lib/date-key';
 
 import { resolveTap, suggestStatus, type PrayerTiming } from '../logic/status';
 import type { PrayerStatus } from '../logic/types';
-import { useTrackingStore } from '../store/tracking-store';
+import { selectRecords, useTrackingStore } from '../store/tracking-store';
 import { StatusBadge } from './status-badge';
 import { StatusSheet } from './status-sheet';
 
@@ -23,7 +23,7 @@ type Props = {
 export function PrayerStatusControl({ date, prayer, timing, contextLabel }: Props) {
   const { t } = useTranslation();
   const fmt = useDateFormat();
-  const record = useTrackingStore((s) => s.records[date]?.[prayer]);
+  const record = useTrackingStore((s) => selectRecords(s)[date]?.[prayer]);
   const setStatus = useTrackingStore((s) => s.setStatus);
   const clearStatus = useTrackingStore((s) => s.clearStatus);
   const [sheet, setSheet] = useState<{ suggested: PrayerStatus | null } | null>(null);

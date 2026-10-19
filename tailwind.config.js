@@ -12,6 +12,7 @@ module.exports = {
           dark: '#115E59',
         },
         status: {
+          mosque: '#2563EB',
           onTime: '#16A34A',
           late: '#EAB308',
           missed: '#DC2626',

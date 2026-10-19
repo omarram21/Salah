@@ -1,10 +1,10 @@
 import { PRAYERS } from '@/features/prayer-times';
-import type { DayRecord, RecordsByDate } from '@/features/tracking';
+import { countsAsOnTime, type DayRecord, type RecordsByDate } from '@/features/tracking';
 import { addDays, type DateKey } from '@/shared/lib/date-key';
 
-/** All five prayers marked "on time". */
+/** All five prayers on time (in the mosque counts as on time). */
 export function isPerfectDay(day: DayRecord | undefined): boolean {
-  return PRAYERS.every((p) => day?.[p]?.status === 'onTime');
+  return PRAYERS.every((p) => countsAsOnTime(day?.[p]?.status));
 }
 
 /**

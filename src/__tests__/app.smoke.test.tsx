@@ -10,9 +10,10 @@ import { usePrayerTimesStore } from '@/features/prayer-times';
 import { cairo, cairoNovHead, cairoOctTail } from '@/features/prayer-times/model/__fixtures__/cairo';
 import { cacheKey } from '@/features/prayer-times/store/prayer-times-store';
 import { useSettingsStore } from '@/features/settings';
-import { useTrackingStore } from '@/features/tracking';
+import { selectRecords, useTrackingStore } from '@/features/tracking';
 
 const PK = '30.044,31.236|mauto|s0';
+const records = () => selectRecords(useTrackingStore.getState());
 const NOW = cairo('2026-10-31T15:30', 2); // during Asr, 31 Oct
 
 function seed({ withLocation = true, withData = true } = {}) {
@@ -29,7 +30,10 @@ function seed({ withLocation = true, withData = true } = {}) {
       ? { [cacheKey(PK, '2026-10')]: cairoOctTail, [cacheKey(PK, '2026-11')]: cairoNovHead }
       : {},
   });
-  useTrackingStore.setState({ records: {}, trackingSince: '2026-10-28' });
+  useTrackingStore.setState({
+    datasets: { real: { records: {}, trackingSince: '2026-10-28' }, demo: null },
+    active: 'real',
+  });
 }
 
 beforeEach(() => {
@@ -64,7 +68,7 @@ describe('app', () => {
     renderRouter('./src/app', { initialUrl: '/' });
 
     fireEvent.press(await screen.findByLabelText('Asr: Not marked'));
-    expect(useTrackingStore.getState().records['2026-10-31']?.asr?.status).toBe('onTime');
+    expect(records()['2026-10-31']?.asr?.status).toBe('onTime');
     expect(await screen.findByLabelText('Asr: Prayed on time')).toBeTruthy();
   });
 
@@ -75,7 +79,18 @@ describe('app', () => {
     fireEvent.press(await screen.findByLabelText('Fajr: Not marked'));
     expect(await screen.findByText('Suggested')).toBeTruthy();
     fireEvent.press(screen.getByText('Prayed late'));
-    expect(useTrackingStore.getState().records['2026-10-31']?.fajr?.status).toBe('late');
+    expect(records()['2026-10-31']?.fajr?.status).toBe('late');
+  });
+
+  it('Today: an on-time prayer can be upgraded to "in mosque"', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/' });
+
+    fireEvent.press(await screen.findByLabelText('Asr: Not marked'));
+    fireEvent.press(await screen.findByLabelText('Asr: Prayed on time'));
+    fireEvent.press(await screen.findByText('Prayed in mosque'));
+    expect(records()['2026-10-31']?.asr?.status).toBe('mosque');
+    expect(await screen.findByLabelText('Asr: Prayed in mosque')).toBeTruthy();
   });
 
   it('Today: asks about yesterday without auto-marking', async () => {
@@ -84,9 +99,9 @@ describe('app', () => {
 
     expect(await screen.findByText('Yesterday')).toBeTruthy();
     expect(screen.getByLabelText('Isha (Yesterday): Not marked')).toBeTruthy();
-    expect(useTrackingStore.getState().records['2026-10-30']).toBeUndefined();
+    expect(records()['2026-10-30']).toBeUndefined();
     fireEvent.press(screen.getByText('Mark the rest as not prayed'));
-    expect(useTrackingStore.getState().records['2026-10-30']?.isha?.status).toBe('missed');
+    expect(records()['2026-10-30']?.isha?.status).toBe('missed');
   });
 
   it('Today: at 01:00, one tap marks LAST NIGHT’s Isha as on time', async () => {
@@ -98,9 +113,8 @@ describe('app', () => {
     expect(screen.getByText('Isha · still in time')).toBeTruthy();
     fireEvent.press(screen.getByLabelText('Isha (Yesterday): Not marked'));
 
-    const { records } = useTrackingStore.getState();
-    expect(records['2026-10-31']?.isha?.status).toBe('onTime');
-    expect(records['2026-11-01']).toBeUndefined();
+    expect(records()['2026-10-31']?.isha?.status).toBe('onTime');
+    expect(records()['2026-11-01']).toBeUndefined();
   });
 
   it('Today: first launch asks for a location', async () => {
@@ -135,7 +149,7 @@ describe('app', () => {
     fireEvent.press(screen.getByLabelText(/^Fri, 30 Oct: Fajr Prayed on time/));
     expect(await screen.findAllByText('Clear status')).toBeTruthy();
     fireEvent.press(screen.getAllByText('Prayed late')[1]!); // Dhuhr card
-    expect(useTrackingStore.getState().records['2026-10-30']?.dhuhr?.status).toBe('late');
+    expect(records()['2026-10-30']?.dhuhr?.status).toBe('late');
   });
 
   it('Stats: shows counts and streaks', async () => {
@@ -159,6 +173,21 @@ describe('app', () => {
       return [style].flat(Infinity).some((st) => st && st.direction === 'rtl');
     });
     expect(rtl.length).toBeGreaterThan(0);
+  });
+
+  it('Demo mode: fills History/Stats with sample data, then restores real records', async () => {
+    seed();
+    useTrackingStore.getState().setStatus('2026-10-30', 'fajr', 'late');
+    renderRouter('./src/app', { initialUrl: '/settings' });
+
+    fireEvent(await screen.findByLabelText('Demo data'), 'valueChange', true);
+    expect((await screen.findAllByText('Demo data · not your real records')).length).toBeGreaterThan(0);
+    expect(Object.keys(records()).length).toBeGreaterThan(60);
+    expect(useTrackingStore.getState().datasets.real.records['2026-10-30']?.fajr?.status).toBe('late');
+
+    fireEvent.press(screen.getAllByText('Turn off')[0]!);
+    expect(records()).toEqual({ '2026-10-30': { fajr: expect.objectContaining({ status: 'late' }) } });
+    expect(screen.queryByText('Demo data · not your real records')).toBeNull();
   });
 
   it('Settings: calculation method picker saves a method', async () => {

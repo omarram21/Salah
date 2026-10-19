@@ -5,7 +5,10 @@ import type { DateKey } from '@/shared/lib/date-key';
 export type StatusKey = PrayerStatus | 'unmarked';
 export type StatusCounts = Record<StatusKey, number>;
 
-const empty = (): StatusCounts => ({ onTime: 0, late: 0, missed: 0, unmarked: 0 });
+const empty = (): StatusCounts => ({ mosque: 0, onTime: 0, late: 0, missed: 0, unmarked: 0 });
+
+/** Prayed on time, including in the mosque. */
+export const onTimeCount = (c: StatusCounts) => c.mosque + c.onTime;
 
 export type CountSummary = {
   total: StatusCounts;

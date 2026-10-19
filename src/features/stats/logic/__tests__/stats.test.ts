@@ -1,6 +1,6 @@
 import type { DayRecord, PrayerStatus, RecordsByDate } from '@/features/tracking';
 
-import { countStatuses } from '../counts';
+import { countStatuses, onTimeCount } from '../counts';
 import { datesBetween, monthStart, weekStart } from '../ranges';
 import { bestStreak, currentStreak, isPerfectDay } from '../streak';
 
@@ -42,17 +42,25 @@ describe('countStatuses', () => {
     const isDue = (date: string, prayer: string) => date < '2026-10-18' || prayer === 'fajr';
     const { total, byPrayer, due } = countStatuses(records, ['2026-10-17', '2026-10-18'], isDue);
 
-    expect(total).toEqual({ onTime: 3, late: 1, missed: 1, unmarked: 1 });
+    expect(total).toEqual({ mosque: 0, onTime: 3, late: 1, missed: 1, unmarked: 1 });
     expect(due).toBe(6);
     expect(byPrayer.fajr.onTime).toBe(2);
     expect(byPrayer.maghrib.unmarked).toBe(1);
-    expect(byPrayer.isha).toEqual({ onTime: 1, late: 0, missed: 0, unmarked: 0 });
+    expect(byPrayer.isha).toEqual({ mosque: 0, onTime: 1, late: 0, missed: 0, unmarked: 0 });
+  });
+
+  it('counts mosque separately but includes it in the on-time total', () => {
+    const records: RecordsByDate = { '2026-10-17': day('mosque', 'onTime', 'mosque', 'late', null) };
+    const { total } = countStatuses(records, ['2026-10-17'], () => true);
+    expect(total.mosque).toBe(2);
+    expect(onTimeCount(total)).toBe(3);
   });
 });
 
 describe('streaks', () => {
-  it('a day is perfect only with all five on time', () => {
+  it('a day is perfect only with all five on time (mosque counts as on time)', () => {
     expect(isPerfectDay(perfect())).toBe(true);
+    expect(isPerfectDay(day('mosque', 'onTime', 'mosque', 'mosque', 'onTime'))).toBe(true);
     expect(isPerfectDay(day('onTime', 'onTime', 'onTime', 'onTime', 'late'))).toBe(false);
     expect(isPerfectDay(day('onTime', 'onTime', 'onTime', 'onTime'))).toBe(false);
     expect(isPerfectDay(undefined)).toBe(false);

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useToday } from '@/features/prayer-times';
 import { StatsView } from '@/features/stats';
+import { DemoBanner } from '@/features/tracking';
 import { Screen, Text } from '@/shared/ui';
 
 export default function StatsScreen() {
@@ -9,6 +10,7 @@ export default function StatsScreen() {
   const { index, now, today } = useToday(60_000);
   return (
     <Screen>
+      <DemoBanner />
       <Text variant="title">{t('tabs.stats')}</Text>
       <StatsView index={index} now={now} today={today} />
     </Screen>

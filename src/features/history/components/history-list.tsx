@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, SectionList, View } from 'react-native';
 
 import { PRAYERS } from '@/features/prayer-times';
-import { StatusDot, STATUSES, useTrackingStore } from '@/features/tracking';
+import {
+  DemoBanner,
+  selectRecords,
+  selectTrackingSince,
+  StatusDot,
+  STATUSES,
+  useTrackingStore,
+} from '@/features/tracking';
 import { useDateFormat, useDirection } from '@/shared/i18n';
 import type { DateKey } from '@/shared/lib/date-key';
 import { Card, Text } from '@/shared/ui';
@@ -18,8 +25,8 @@ export function HistoryList({ today, onSelectDay }: Props) {
   const { t } = useTranslation();
   const fmt = useDateFormat();
   const { isRTL } = useDirection();
-  const records = useTrackingStore((s) => s.records);
-  const trackingSince = useTrackingStore((s) => s.trackingSince);
+  const records = useTrackingStore(selectRecords);
+  const trackingSince = useTrackingStore(selectTrackingSince);
   const sections = historySections(records, trackingSince, today);
 
   return (
@@ -30,6 +37,7 @@ export function HistoryList({ today, onSelectDay }: Props) {
       stickySectionHeadersEnabled={false}
       ListHeaderComponent={
         <View className="gap-3 pb-2 pt-4">
+          <DemoBanner />
           <Text variant="title">{t('tabs.history')}</Text>
           <Card className="flex-row flex-wrap gap-x-4 gap-y-2 py-3">
             {[...STATUSES, undefined].map((s) => (

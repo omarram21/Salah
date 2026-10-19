@@ -30,7 +30,8 @@ export function useNotificationSync() {
   const { t, i18n } = useTranslation();
   const params = usePrayerParams();
   const { index } = usePrayerDays(params);
-  const records = useTrackingStore((s) => s.records);
+  // Real records only: marking demo data must not cancel real reminders.
+  const records = useTrackingStore((s) => s.datasets.real.records);
   const prefs = useSettingsStore((s) => s.alarms);
   const setPermission = useNotificationPermission((s) => s.setStatus);
   const lastSignature = useRef<string | null>(null);

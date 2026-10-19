@@ -12,7 +12,7 @@ import {
   usePrayerTimesStore,
   useToday,
 } from '@/features/prayer-times';
-import { getTiming, PrayerStatusControl, YesterdayCard } from '@/features/tracking';
+import { DemoBanner, getTiming, PrayerStatusControl, YesterdayCard } from '@/features/tracking';
 import { ErrorView, LoadingView, Screen, Text } from '@/shared/ui';
 
 export default function TodayScreen() {
@@ -26,6 +26,7 @@ export default function TodayScreen() {
   if (!location || !params) {
     return (
       <Screen>
+        <DemoBanner />
         <DateHeader date={today} hijri={null} />
         <LocationSetupCard onChooseCity={openPicker} />
       </Screen>
@@ -34,6 +35,7 @@ export default function TodayScreen() {
 
   return (
     <Screen>
+      <DemoBanner />
       <DateHeader date={today} hijri={day?.hijri ?? null} />
 
       <Pressable onPress={openPicker} className="flex-row items-center gap-1 self-start active:opacity-60">

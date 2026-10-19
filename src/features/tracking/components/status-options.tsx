@@ -5,6 +5,7 @@ import { Pressable, View } from 'react-native';
 import { Text } from '@/shared/ui';
 
 import { STATUSES, type PrayerStatus } from '../logic/types';
+import { StatusIcon } from './status-icon';
 import { STATUS_STYLE } from './status-style';
 
 type Props = {
@@ -34,7 +35,7 @@ export function StatusOptions({ value, suggested, onSelect, onClear }: Props) {
                 : 'border-slate-200 dark:border-slate-700'
             }`}>
             <View className={`size-8 items-center justify-center rounded-full ${s.bg}`}>
-              <Ionicons name={s.icon} size={18} color="#fff" />
+              <StatusIcon status={status} size={18} />
             </View>
             <Text className="flex-1 font-medium">{t(`status.${status}`)}</Text>
             {suggested === status && !selected ? (

@@ -2,7 +2,7 @@ import { getCalendars } from 'expo-localization';
 import { useMemo } from 'react';
 
 import type { DayIndex, PrayerName } from '@/features/prayer-times';
-import { useTrackingStore } from '@/features/tracking';
+import { selectRecords, selectTrackingSince, useTrackingStore } from '@/features/tracking';
 import type { DateKey } from '@/shared/lib/date-key';
 
 import { countStatuses } from '../logic/counts';
@@ -16,8 +16,8 @@ function deviceFirstWeekday(): number {
 }
 
 export function useStats(period: StatsPeriod, index: DayIndex, now: number, today: DateKey) {
-  const records = useTrackingStore((s) => s.records);
-  const trackingSince = useTrackingStore((s) => s.trackingSince);
+  const records = useTrackingStore(selectRecords);
+  const trackingSince = useTrackingStore(selectTrackingSince);
 
   return useMemo(() => {
     const periodStart = period === 'week' ? weekStart(today, deviceFirstWeekday()) : monthStart(today);
