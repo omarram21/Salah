@@ -5,7 +5,8 @@ Generates the app's notification sounds (original, license-free) into assets/sou
     python3 scripts/generate-sounds.py
 
 Pure standard library: additive synthesis, Karplus–Strong plucked strings and a small
-Schroeder reverb. Output is 16-bit mono 44.1 kHz WAV, peak-normalised, < 30 s (iOS limit).
+Schroeder reverb. Output is 16-bit mono 44.1 kHz WAV, peak-normalised, at most MAX_SECONDS long
+(short notifications; iOS allows up to 30 s).
 """
 import math
 import os
@@ -14,6 +15,7 @@ import struct
 import wave
 
 RATE = 44100
+MAX_SECONDS = 2.0
 OUT = os.path.join(os.path.dirname(__file__), '..', 'assets', 'sounds')
 
 # Note frequencies (Hz). Eb4 is the Hijaz "half-flat-feeling" second against D.
@@ -113,20 +115,20 @@ def reverb(x, wet=0.25, room=0.82):
     return [dry[i] * (1 - wet) + acc[i] * wet for i in range(n)]
 
 
-def finish(x, name, peak=0.89, tail_fade=0.4):
-    # Trim trailing near-silence, fade out, normalise.
+def finish(x, name, peak=0.89, tail_fade=0.35):
+    # Trim trailing near-silence, cap at MAX_SECONDS, fade out, normalise.
     m = max(abs(s) for s in x) or 1.0
     thresh = m * 0.002
     end = len(x)
     while end > 0 and abs(x[end - 1]) < thresh:
         end -= 1
-    x = x[: min(len(x), end + int(0.05 * RATE))]
+    x = x[: min(len(x), end + int(0.05 * RATE), int(MAX_SECONDS * RATE))]
     f = int(tail_fade * RATE)
     for i in range(min(f, len(x))):
         x[len(x) - 1 - i] *= i / f
     m = max(abs(s) for s in x) or 1.0
     x = [s / m * peak for s in x]
-    assert len(x) / RATE < 30, f'{name} is too long for iOS'
+    assert len(x) <= MAX_SECONDS * RATE, f'{name} is longer than {MAX_SECONDS}s'
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, name)
     with wave.open(path, 'wb') as w:
@@ -138,52 +140,44 @@ def finish(x, name, peak=0.89, tail_fade=0.4):
 
 
 def oud():
-    """Calm phrase in maqam Hijaz on D, plucked like an oud, with a soft drone."""
-    phrase = [  # (freq, start, length)
-        (D4, 0.00, 1.6), (Fs4, 0.42, 1.6), (G4, 0.84, 1.6), (A4, 1.26, 2.6),
-        (G4, 2.30, 1.6), (Fs4, 2.72, 1.6), (Eb4, 3.14, 1.8), (D4, 3.62, 3.4),
-    ]
-    buf = silence(7.5)
-    for k, (f, t, length) in enumerate(phrase):
-        mix_into(buf, pluck(f, length, damping=0.9965, brightness=0.55, seed=k + 3), t, 0.9)
-        # Octave-down pluck an instant later adds body, like a doubled course of strings.
-        mix_into(buf, pluck(f / 2, length, damping=0.997, brightness=0.45, seed=k + 40), t + 0.012, 0.35)
-    drone = additive(D4 / 2, 7.0, [(1, 0.10, 6.0), (2, 0.05, 4.0), (3, 0.02, 3.0)], attack=0.8)
-    mix_into(buf, drone, 0.0, 1.0)
-    return reverb(buf, wet=0.28, room=0.84)
+    """Four quick oud plucks on the Hijaz scale (D, E♭, F♯, G) — the E♭→F♯ step gives it its colour."""
+    buf = silence(2.0)
+    for k, (f, t) in enumerate([(D4, 0.00), (Eb4, 0.16), (Fs4, 0.32), (G4, 0.48)]):
+        length = 1.5 if k == 3 else 0.6
+        mix_into(buf, pluck(f, length, damping=0.996, brightness=0.55, seed=k + 3), t, 0.9)
+        mix_into(buf, pluck(f / 2, length, damping=0.997, brightness=0.45, seed=k + 40), t + 0.01, 0.35)
+    mix_into(buf, additive(D4 / 2, 2.0, [(1, 0.08, 1.2), (2, 0.04, 0.8)], attack=0.15), 0.0, 1.0)
+    return reverb(buf, wet=0.22, room=0.78)
 
 
 def bell():
-    """Two soft temple-bell strikes (inharmonic partials)."""
-    partials = [(0.5, 0.35, 3.5), (1.0, 1.0, 2.8), (1.19, 0.4, 2.0), (1.56, 0.3, 1.6), (2.0, 0.5, 1.4), (2.74, 0.25, 0.9), (3.76, 0.15, 0.6)]
-    buf = silence(6.0)
-    mix_into(buf, additive(C5, 5.0, partials), 0.0, 1.0)
-    mix_into(buf, additive(G4b, 4.5, partials), 1.4, 0.8)
-    return reverb(buf, wet=0.22, room=0.8)
+    """One soft bell strike with a short natural ring."""
+    partials = [(0.5, 0.35, 1.4), (1.0, 1.0, 1.1), (1.19, 0.4, 0.8), (1.56, 0.3, 0.6), (2.0, 0.5, 0.5), (2.74, 0.25, 0.35), (3.76, 0.15, 0.25)]
+    return reverb(additive(C5, 2.0, partials), wet=0.18, room=0.72)
 
 
 def chime():
-    """Bright, short major-triad chime."""
-    partials = [(1, 1.0, 0.9), (2, 0.25, 0.5), (3, 0.08, 0.3), (4.2, 0.05, 0.2)]
-    buf = silence(3.0)
+    """Bright, quick major-triad chime."""
+    partials = [(1, 1.0, 0.6), (2, 0.25, 0.35), (3, 0.08, 0.2), (4.2, 0.05, 0.15)]
+    buf = silence(2.0)
     for k, f in enumerate([E5, Gs5, B5]):
-        mix_into(buf, additive(f, 2.2, partials, attack=0.004), k * 0.16, 0.8)
-    return reverb(buf, wet=0.2, room=0.78)
+        mix_into(buf, additive(f, 1.4, partials, attack=0.004), k * 0.11, 0.8)
+    return reverb(buf, wet=0.18, room=0.72)
 
 
 def dawn():
-    """Slow rising arpeggio with soft pads — gentle for Fajr."""
-    buf = silence(7.0)
+    """A short, soft rising arpeggio — gentle for Fajr."""
+    buf = silence(2.0)
     for k, f in enumerate([D4, A4, D5, Fs5]):
-        pad = additive(f, 5.0, [(1, 0.8, 2.5), (1.003, 0.5, 2.5), (2, 0.15, 1.5)], attack=0.35)
-        mix_into(buf, pad, k * 0.55, 0.6)
-    return reverb(buf, wet=0.3, room=0.85)
+        pad = additive(f, 1.6, [(1, 0.8, 0.9), (1.003, 0.5, 0.9), (2, 0.15, 0.6)], attack=0.08)
+        mix_into(buf, pad, k * 0.18, 0.6)
+    return reverb(buf, wet=0.22, room=0.78)
 
 
 def reminder():
     """Two soft marimba knocks, falling — a nudge, not an alarm."""
     partials = [(1, 1.0, 0.25), (4, 0.2, 0.06), (10, 0.05, 0.02)]
-    buf = silence(1.4)
+    buf = silence(1.2)
     mix_into(buf, additive(A5, 0.8, partials, attack=0.002), 0.0, 0.9)
     mix_into(buf, additive(E5, 0.9, partials, attack=0.002), 0.22, 0.8)
     return reverb(buf, wet=0.15, room=0.7)
