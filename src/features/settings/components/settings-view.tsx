@@ -61,6 +61,7 @@ export function SettingsView() {
 
       <SettingsGroup title={t('settings.sectionTracking')}>
         <SettingsRow icon="crescent" label={t('sunnah.title')} value={sunnahValue} href="/sunnah" />
+        <SettingsRow icon="mosque" label={t('occasions.title')} href="/friday-ramadan" />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.sectionAlarms')}>

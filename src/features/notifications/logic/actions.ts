@@ -2,6 +2,8 @@ import { PRAYERS, type PrayerName } from '@/features/prayer-times';
 import type { PrayerStatus } from '@/features/tracking';
 import type { DateKey } from '@/shared/lib/date-key';
 
+import type { NotificationKind } from './build-schedule';
+
 /** Notification category with the "Prayed" / "In mosque" buttons. */
 export const PRAYER_CATEGORY = 'prayer';
 export const NOTIFICATION_ACTIONS = ['prayed', 'mosque'] as const;
@@ -11,7 +13,7 @@ export type NotificationActionId = (typeof NOTIFICATION_ACTIONS)[number];
 export type PrayerNotificationData = {
   date: DateKey;
   prayer: PrayerName;
-  kind: 'start' | 'reminder';
+  kind: NotificationKind;
   at: number;
   /** End of the prayer's window (epoch ms): decides "on time" vs "late". */
   end: number;

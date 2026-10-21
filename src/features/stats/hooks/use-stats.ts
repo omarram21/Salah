@@ -2,6 +2,7 @@ import { getCalendars } from 'expo-localization';
 import { useMemo } from 'react';
 
 import type { DayIndex, PrayerName } from '@/features/prayer-times';
+import { useOccasions } from '@/features/occasions';
 import { useSettingsStore } from '@/features/settings';
 import { countExtras, selectExtras, selectRecords, selectTrackingSince, useTrackingStore, witrStreak } from '@/features/tracking';
 import { addDays, type DateKey } from '@/shared/lib/date-key';
@@ -22,6 +23,7 @@ export function useStats(period: StatsPeriod, index: DayIndex, now: number, toda
   const extras = useTrackingStore(selectExtras);
   const sunnahEnabled = useSettingsStore((s) => s.sunnahEnabled);
   const sunnahItems = useSettingsStore((s) => s.sunnahItems);
+  const { isFriday, isRamadan } = useOccasions(index, today);
 
   return useMemo(() => {
     const periodStart = period === 'week' ? weekStart(today, deviceFirstWeekday()) : monthStart(today);
@@ -48,7 +50,19 @@ export function useStats(period: StatsPeriod, index: DayIndex, now: number, toda
             return start !== undefined && start <= now;
           })
         : null,
+      // Al-Kahf: Fridays so far (today counts once marked). Fasting: Ramadan days that have ended (or are marked).
+      occasions: {
+        kahf: tally(dates.filter((d) => isFriday(d) && (d < today || !!extras[d]?.kahf)), (d) => !!extras[d]?.kahf),
+        fast: tally(
+          dates.filter((d) => isRamadan(d) && (d < today || !!extras[d]?.fast || (index.get(d)?.times.maghrib.at ?? Infinity) <= now)),
+          (d) => !!extras[d]?.fast,
+        ),
+      },
       witrStreak: sunnahEnabled && sunnahItems.witr ? witrStreak(extras, today, addDays) : null,
     };
-  }, [period, index, now, today, records, trackingSince, extras, sunnahEnabled, sunnahItems]);
+  }, [period, index, now, today, records, trackingSince, extras, sunnahEnabled, sunnahItems, isFriday, isRamadan]);
+}
+
+function tally(dates: DateKey[], done: (d: DateKey) => boolean) {
+  return { done: dates.filter(done).length, due: dates.length };
 }

@@ -40,6 +40,14 @@ Design "E": minimal, icon-led, Space Grotesk, one orange accent (light + dark).
   "Sunnah 4/5 · Witr ✓" line in History, and a Stats card with per-item counts and a Witr streak.
   Witr after midnight counts for the previous night. Choose which to track in Settings → Sunnah & Witr.
   They never affect the on-time streak.
+- **Friday** — Dhuhr is called Jumu'ah (Today, alarms, History, day editor), a "Jumu'ah Mubarak"
+  card with a "Read Al-Kahf" check, and an Al-Kahf reminder on Friday at a chosen hour (skipped once
+  marked read).
+- **Ramadan** — turns on by itself from the Hijri date (month 9). Today shows a Suhoor / Iftar countdown
+  and a "Fasting today" check; Maghrib's alarm says "Iftar time"; optional Suhoor reminder N minutes
+  before Fajr. History lets you edit fasts; Stats counts fasting days and Al-Kahf Fridays. Eid card on
+  1 Shawwal and 10 Dhul-Hijjah. Settings → Friday & Ramadan has "Preview" switches (not saved) to try it
+  on any day.
 - **Notification buttons** — "Prayed" / "In mosque" on alarms and reminders mark the prayer without
   opening the app (never overwriting an existing mark).
 - **Offline** — prayer times are fetched a month at a time from AlAdhan and cached; next month is

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
+import { prayerNameKey, useOccasions } from '@/features/occasions';
 import {
   getPrayerWindow,
   PRAYER_ICON,
@@ -42,6 +43,8 @@ export function DayStepper({ date, index, now, today, onDone }: Props) {
   const setStatus = useTrackingStore((s) => s.setStatus);
   const clearStatus = useTrackingStore((s) => s.clearStatus);
 
+  const jumuah = useOccasions(index, today).isJumuah(date);
+  const nameOf = (p: PrayerName) => t(prayerNameKey(p, jumuah));
   const timingOf = (p: PrayerName) => getTiming(getPrayerWindow(index, date, p), now, date, today);
   const firstOpen = PRAYERS.findIndex((p) => !records?.[p] && timingOf(p) !== 'upcoming');
   const [idx, setIdx] = useState(firstOpen >= 0 ? firstOpen : 0);
@@ -69,13 +72,13 @@ export function DayStepper({ date, index, now, today, onDone }: Props) {
               key={p}
               accessibilityRole="tab"
               accessibilityState={{ selected }}
-              accessibilityLabel={`${t(`prayers.${p}`)}: ${t(`status.${records?.[p]?.status ?? 'unmarked'}`)}`}
+              accessibilityLabel={`${nameOf(p)}: ${t(`status.${records?.[p]?.status ?? 'unmarked'}`)}`}
               onPress={() => setIdx(i)}
               className={`h-16 flex-1 items-center justify-center gap-1.5 rounded-2xl border-2 ${
                 selected ? 'border-ink bg-paper dark:border-ink-dark dark:bg-paper-dark' : 'border-transparent bg-chip dark:bg-chip-dark'
               }`}>
               <Text variant="micro" numberOfLines={1}>
-                {t(`prayers.${p}`)}
+                {nameOf(p)}
               </Text>
               <StatusDot status={records?.[p]?.status} upcoming={timingOf(p) === 'upcoming'} size={12} />
             </Pressable>
@@ -88,7 +91,7 @@ export function DayStepper({ date, index, now, today, onDone }: Props) {
           <Icon name={PRAYER_ICON[prayer]} size={44} color={c.ink} strokeWidth={1.5} />
         </View>
         <Text variant="title" className="mt-3" style={{ fontSize: 34, lineHeight: 40 }}>
-          {t(`prayers.${prayer}`)}
+          {nameOf(prayer)}
         </Text>
         {windowLabel ? (
           <Text variant="small" tone="muted" tabular>
@@ -101,7 +104,7 @@ export function DayStepper({ date, index, now, today, onDone }: Props) {
             size="large"
             value={value}
             disabled={upcoming}
-            prayerLabel={t(`prayers.${prayer}`)}
+            prayerLabel={nameOf(prayer)}
             onPick={(status) => {
               if (value === status) {
                 clearStatus(date, prayer);

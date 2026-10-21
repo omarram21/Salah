@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { eidOf, prayerNameKey, useOccasions } from '@/features/occasions';
 import { getPrayerWindow, PRAYERS, usePrayerTimesStore, useToday } from '@/features/prayer-times';
 import { currentStreak } from '@/features/stats';
 import { DemoBanner, getTiming, selectRecords, SunnahChips, useTrackingStore, YesterdayCard } from '@/features/tracking';
@@ -9,6 +10,7 @@ import { Card, ErrorView, LoadingView, Screen, Text } from '@/shared/ui';
 import { TodayHeader } from './today-header';
 import { TodayHero } from './today-hero';
 import { DuhaRow } from './duha-row';
+import { EidCard, FridayCard, RamadanCard } from './occasion-cards';
 import { TodayPrayerRow } from './today-prayer-row';
 
 /** The Today tab (design E). Assumes a location is set. */
@@ -19,6 +21,8 @@ export function TodayView() {
   // After midnight, last night's Isha (and its sunnah / Witr) is still running.
   const lastNight = current?.prayer === 'isha' && current.date < today ? current.date : null;
   const records = useTrackingStore(selectRecords);
+  const occ = useOccasions(index, today);
+  const eid = eidOf(day ?? undefined);
   const todayRecord = records[today];
   const done = PRAYERS.filter((p) => {
     const s = todayRecord?.[p]?.status;
@@ -31,7 +35,17 @@ export function TodayView() {
       <TodayHeader date={today} hijri={day?.hijri ?? null} />
       {day ? (
         <>
-          <TodayHero now={now} index={index} next={next} done={done} streak={currentStreak(records, today)} />
+          <TodayHero
+            now={now}
+            index={index}
+            next={next}
+            nextName={next ? t(prayerNameKey(next.prayer, occ.isJumuah(next.date))) : ''}
+            done={done}
+            streak={currentStreak(records, today)}
+          />
+          {eid ? <EidCard eid={eid} /> : null}
+          <RamadanCard index={index} now={now} today={today} isRamadan={occ.isRamadan} preview={occ.preview.ramadan} />
+          {occ.isFriday(today) ? <FridayCard day={day} jumuah={occ.isJumuah(today)} /> : null}
           <YesterdayCard index={index} now={now} today={today} />
           {lastNight ? (
             <Card className="gap-2.5">
@@ -47,6 +61,7 @@ export function TodayView() {
                   key={prayer}
                   day={day}
                   prayer={prayer}
+                  name={t(prayerNameKey(prayer, occ.isJumuah(day.date)))}
                   timing={getTiming(window, now, day.date, today)}
                   endsAt={window?.end ?? null}
                   now={now}

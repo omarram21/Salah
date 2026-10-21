@@ -9,7 +9,7 @@ import { useLocationStore } from '@/features/location';
 import { usePrayerTimesStore } from '@/features/prayer-times';
 import { cairo, cairoNovHead, cairoOctTail } from '@/features/prayer-times/model/__fixtures__/cairo';
 import { cacheKey } from '@/features/prayer-times/store/prayer-times-store';
-import { DEFAULT_ALARMS, DEFAULT_TIME_ADJUST, useSettingsStore } from '@/features/settings';
+import { DEFAULT_ALARMS, DEFAULT_FRIDAY, DEFAULT_RAMADAN, DEFAULT_TIME_ADJUST, useSettingsStore } from '@/features/settings';
 import { DEFAULT_SUNNAH_ITEMS, selectExtras, selectRecords, useTrackingStore } from '@/features/tracking';
 
 const PK = '30.044,31.236|mauto|s0';
@@ -27,6 +27,9 @@ function seed({ withLocation = true, withData = true } = {}) {
     alarms: DEFAULT_ALARMS,
     sunnahEnabled: true,
     sunnahItems: DEFAULT_SUNNAH_ITEMS,
+    friday: DEFAULT_FRIDAY,
+    ramadan: DEFAULT_RAMADAN,
+    preview: { friday: false, ramadan: false },
   });
   useLocationStore.setState({
     location: withLocation
@@ -195,9 +198,9 @@ describe('app', () => {
     fireEvent.press(screen.getByLabelText(/^Fri, 30 Oct: Fajr Prayed on time/));
     fireEvent.press(await screen.findByLabelText('Edit Fri, 30 Oct'));
 
-    // D1 editor opens on the first unmarked prayer (Dhuhr) and advances after a pick.
+    // D1 editor opens on the first unmarked prayer (Dhuhr — Jumu'ah, it's a Friday) and advances after a pick.
     expect(await screen.findByText('Friday, 30 October')).toBeTruthy();
-    fireEvent.press(screen.getByLabelText('Dhuhr: Prayed in mosque'));
+    fireEvent.press(screen.getByLabelText('Jumu’ah: Prayed in mosque'));
     expect(records()['2026-10-30']?.dhuhr?.status).toBe('mosque');
     expect(await screen.findByText('Done · 2 of 5 marked')).toBeTruthy();
     expect(screen.getByLabelText('Asr: Prayed late')).toBeTruthy();
@@ -376,7 +379,45 @@ describe('app', () => {
     expect(extras()['2026-10-30']?.fajrBefore).toBeTruthy();
   });
 
-  it.each(['/', '/history', '/stats', '/settings', '/alarms', '/alarm-sound', '/qibla', '/adjust-times', '/sunnah', '/day/2026-10-30', '/location'])(
+  it("Friday: Dhuhr is Jumu'ah and Al-Kahf can be marked read", async () => {
+    seed();
+    jest.setSystemTime(cairo('2026-10-30T09:00', 3));
+    renderRouter('./src/app', { initialUrl: '/' });
+    expect(await screen.findByText('Jumu’ah Mubarak')).toBeTruthy();
+    expect(screen.getByText(/^Jumu’ah · /)).toBeTruthy(); // next prayer in the hero
+    fireEvent.press(screen.getByLabelText('Surat al-Kahf'));
+    expect(extras()['2026-10-30']?.kahf).toBeTruthy();
+  });
+
+  it('Ramadan preview: Iftar countdown, fasting check, and Stats counts it', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/friday-ramadan' });
+    fireEvent.press(await screen.findByLabelText('Preview Ramadan'));
+    expect(useSettingsStore.getState().preview.ramadan).toBe(true);
+
+    renderRouter('./src/app', { initialUrl: '/' });
+    expect(await screen.findByText('Iftar in')).toBeTruthy();
+    expect(screen.getByText('Preview')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Fasted this day'));
+    expect(extras()['2026-10-31']?.fast).toBeTruthy();
+
+    renderRouter('./src/app', { initialUrl: '/stats' });
+    expect(await screen.findByLabelText('Fasting: 1 of 1 days')).toBeTruthy();
+  });
+
+  it('Friday & Ramadan settings: Suhoor minutes and Al-Kahf time', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/settings' });
+    fireEvent.press(await screen.findByLabelText('Friday & Ramadan'));
+    fireEvent.press(await screen.findByLabelText('45 min'));
+    expect(useSettingsStore.getState().ramadan.suhoorMinutes).toBe(45);
+    fireEvent.press(screen.getByLabelText('12:00 PM'));
+    expect(useSettingsStore.getState().friday.kahfHour).toBe(12);
+    fireEvent.press(screen.getByLabelText('Ramadan mode'));
+    expect(useSettingsStore.getState().ramadan.enabled).toBe(false);
+  });
+
+  it.each(['/', '/history', '/stats', '/settings', '/alarms', '/alarm-sound', '/qibla', '/adjust-times', '/sunnah', '/friday-ramadan', '/day/2026-10-30', '/location'])(
     'Dark mode: %s renders',
     async (url) => {
       seed();

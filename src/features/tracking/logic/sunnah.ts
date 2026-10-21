@@ -36,8 +36,11 @@ export const DEFAULT_SUNNAH_ITEMS: Record<SunnahId, boolean> = {
   witr: true,
 };
 
+/** Everything tracked as done / not done besides the five: sunnahs, plus Friday's Al-Kahf and Ramadan fasting. */
+export type ExtraId = SunnahId | 'kahf' | 'fast';
+
 /** Done extras per day (value = when it was marked). Keyed like prayers: Witr after midnight → previous date. */
-export type ExtrasByDate = Record<string, Partial<Record<SunnahId, number>>>;
+export type ExtrasByDate = Record<string, Partial<Record<ExtraId, number>>>;
 
 export function enabledSunnah(items: Record<SunnahId, boolean>): SunnahDef[] {
   return SUNNAH_IDS.filter((id) => items[id]).map((id) => SUNNAH[id]);

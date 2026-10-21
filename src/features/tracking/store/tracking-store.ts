@@ -6,7 +6,7 @@ import type { DateKey } from '@/shared/lib/date-key';
 import { STORAGE_KEYS, zustandStorage } from '@/shared/lib/storage';
 
 import { generateDemoDataset } from '../demo/generate-demo';
-import type { SunnahId } from '../logic/sunnah';
+import type { ExtraId } from '../logic/sunnah';
 import type { Dataset, PrayerStatus, RecordsByDate } from '../logic/types';
 
 export type DatasetName = 'real' | 'demo';
@@ -26,8 +26,8 @@ type TrackingState = PersistedTracking & {
    * when the prayer isn't marked yet. Returns whether it saved.
    */
   markRealIfUnmarked: (date: DateKey, prayer: PrayerName, status: PrayerStatus, now?: number) => boolean;
-  /** Marks a sunnah / Witr / Duha done or not done for a date (active dataset). */
-  setExtra: (date: DateKey, id: SunnahId, done: boolean, now?: number) => void;
+  /** Marks a sunnah / Witr / Duha / Al-Kahf / fast done or not done for a date (active dataset). */
+  setExtra: (date: DateKey, id: ExtraId, done: boolean, now?: number) => void;
   /** Records the first-use date of the REAL dataset once. */
   ensureStarted: (today: DateKey) => void;
   /** Switch to demo data (generated on first use, then kept with any edits). */

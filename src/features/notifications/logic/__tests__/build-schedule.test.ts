@@ -76,3 +76,33 @@ describe('buildSchedule', () => {
     expect(plans).toHaveLength(MAX_SCHEDULED);
   });
 });
+
+describe('buildSchedule · Friday & Ramadan', () => {
+  const occasions = {
+    isFriday: (d: string) => d === '2026-11-06',
+    isRamadan: () => true,
+    friday: { jumuahLabel: true, kahfReminder: true, kahfHour: 10 },
+    ramadan: { enabled: true, suhoorReminder: true, suhoorMinutes: 30 },
+  };
+
+  it('adds a Suhoor reminder N minutes before each Ramadan Fajr', () => {
+    const plans = buildSchedule({ ...base, occasions });
+    const s = plans.find((p) => p.id === '2026-11-01:suhoor')!;
+    expect(s).toMatchObject({ kind: 'suhoor', prayer: 'fajr', at: cairoIndex.get('2026-11-01')!.times.fajr.at - 30 * 60_000 });
+  });
+
+  it('no Suhoor reminder when Ramadan mode or the reminder is off, or outside Ramadan', () => {
+    for (const ramadan of [{ ...occasions.ramadan, enabled: false }, { ...occasions.ramadan, suhoorReminder: false }]) {
+      expect(buildSchedule({ ...base, occasions: { ...occasions, ramadan } }).some((p) => p.kind === 'suhoor')).toBe(false);
+    }
+    expect(buildSchedule({ ...base, occasions: { ...occasions, isRamadan: () => false } }).some((p) => p.kind === 'suhoor')).toBe(false);
+  });
+
+  it('Al-Kahf reminder on Friday at the chosen hour, skipped once marked read', () => {
+    const fri = { ...occasions, isFriday: (d: string) => d === '2026-11-01' };
+    const k = buildSchedule({ ...base, occasions: fri }).find((p) => p.kind === 'kahf')!;
+    expect(k).toMatchObject({ date: '2026-11-01', at: cairo('2026-11-01T10:00', 2) });
+    const extras = { '2026-11-01': { kahf: 1 } };
+    expect(buildSchedule({ ...base, extras, occasions: fri }).some((p) => p.kind === 'kahf')).toBe(false);
+  });
+});

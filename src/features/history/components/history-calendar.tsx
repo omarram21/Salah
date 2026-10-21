@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
+import { prayerNameKey, useOccasions } from '@/features/occasions';
 import { getPrayerWindow, PRAYERS, type DayIndex } from '@/features/prayer-times';
 import { useSettingsStore } from '@/features/settings';
 import {
@@ -16,6 +17,7 @@ import {
   selectTrackingSince,
   StatusCircle,
   StatusDot,
+  ToggleChip,
   useTrackingStore,
   type DayRecord,
 } from '@/features/tracking';
@@ -173,6 +175,9 @@ function SelectedDay({ date, record, today, index, now }: { date: DateKey; recor
   const fmt = useDateFormat();
   const { c } = useThemeColors();
   const { isRTL } = useDirection();
+  const occ = useOccasions(index, today);
+  const friday = occ.isFriday(date);
+  const ramadan = occ.isRamadan(date);
   const title = date === today ? `${t('history.today')}, ${fmt.long(date).replace(/\s\d{4}$/, '')}` : fmt.weekdayLong(date);
   return (
     <View className="gap-3 rounded-[20px] bg-well px-4 py-3.5 dark:bg-well-dark">
@@ -201,12 +206,18 @@ function SelectedDay({ date, record, today, index, now }: { date: DateKey; recor
               ) : (
                 <StatusCircle size={34} status={status} accessibilityLabel={`${t(`prayers.${p}`)}: ${t(`status.${status ?? 'unmarked'}`)}`} />
               )}
-              <Text variant="micro" tone="muted" weight="regular">{t(`prayers.${p}`)}</Text>
+              <Text variant="micro" tone="muted" weight="regular">{t(prayerNameKey(p, occ.isJumuah(date)))}</Text>
             </View>
           );
         })}
       </View>
       <ExtrasSummary date={date} today={today} index={index} now={now} />
+      {friday || ramadan ? (
+        <View className="flex-row flex-wrap gap-2">
+          {ramadan ? <ToggleChip date={date} id="fast" icon="crescent" size="small" label={t('occasions.fastStat')} a11y={t('occasions.fastName')} /> : null}
+          {friday ? <ToggleChip date={date} id="kahf" icon="list" size="small" label={t('occasions.kahfStat')} a11y={t('occasions.kahfName')} /> : null}
+        </View>
+      ) : null}
     </View>
   );
 }

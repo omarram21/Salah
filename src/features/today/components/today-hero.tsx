@@ -11,13 +11,15 @@ type Props = {
   now: number;
   index: DayIndex;
   next: UpcomingPrayer | null;
+  /** Display name of the next prayer ("Jumu'ah" on Friday). */
+  nextName: string;
   /** Prayers done today (any "prayed" status) out of five. */
   done: number;
   streak: number;
 };
 
 /** Next prayer, big countdown, today's ring and the streak (design E). */
-export function TodayHero({ now, index, next, done, streak }: Props) {
+export function TodayHero({ now, index, next, nextName, done, streak }: Props) {
   const { t } = useTranslation();
   const { c } = useThemeColors();
   const labels = { am: t('common.am'), pm: t('common.pm') };
@@ -29,13 +31,13 @@ export function TodayHero({ now, index, next, done, streak }: Props) {
           <View className="flex-row items-center gap-2.5">
             <Icon name={PRAYER_ICON[next.prayer]} size={28} color={c.accent} />
             <Text variant="heading" tone="accent" weight="semibold">
-              {`${t(`prayers.${next.prayer}`)} · ${formatWallTime(index.get(next.date)?.times[next.prayer].wall ?? '', labels)}`}
+              {`${nextName} · ${formatWallTime(index.get(next.date)?.times[next.prayer].wall ?? '', labels)}`}
             </Text>
           </View>
           <Text
             variant="hero"
             tabular
-            accessibilityLabel={t('today.nextPrayerIn', { prayer: t(`prayers.${next.prayer}`), time: formatCountdown(next.at - now) })}>
+            accessibilityLabel={t('today.nextPrayerIn', { prayer: nextName, time: formatCountdown(next.at - now) })}>
             {formatCountdown(next.at - now)}
           </Text>
         </>

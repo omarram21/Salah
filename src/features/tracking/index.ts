@@ -4,7 +4,7 @@ export { StatusCircle } from './components/status-circle';
 export { StatusDot } from './components/status-dot';
 export { StatusIcon } from './components/status-icon';
 export { StatusQuickPicker } from './components/status-quick-picker';
-export { SunnahChips } from './components/sunnah-chips';
+export { SunnahChips, ToggleChip } from './components/sunnah-chips';
 export { STATUS_STYLE, type StatusKey } from './components/status-style';
 export { YesterdayCard } from './components/yesterday-card';
 export { DEMO_DAYS, generateDemoDataset } from './demo/generate-demo';
@@ -18,6 +18,7 @@ export {
   SUNNAH_IDS,
   sunnahFor,
   witrStreak,
+  type ExtraId,
   type ExtrasByDate,
   type ExtrasCount,
   type SunnahDef,

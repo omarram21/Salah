@@ -32,7 +32,7 @@ export function StatsView({ index, now, today }: Props) {
   const fmt = useDateFormat();
   const { c } = useThemeColors();
   const [period, setPeriod] = useState<StatsPeriod>('week');
-  const { summary, current, best, extras, witrStreak } = useStats(period, index, now, today);
+  const { summary, current, best, extras, witrStreak, occasions } = useStats(period, index, now, today);
   const pct = summary.due ? Math.round((onTimeCount(summary.total) / summary.due) * 100) : null;
   const insight = prayerInsight(summary);
   const range =
@@ -135,7 +135,33 @@ export function StatsView({ index, now, today }: Props) {
       ) : null}
 
       {extras ? <ExtrasCard extras={extras} witrStreak={witrStreak} /> : null}
+      <OccasionsCard occasions={occasions} />
     </Screen>
+  );
+}
+
+type Tally = { done: number; due: number };
+
+/** Al-Kahf on Fridays and Ramadan fasting, when the period has any. */
+function OccasionsCard({ occasions }: { occasions: { kahf: Tally; fast: Tally } }) {
+  const { t } = useTranslation();
+  const { c } = useThemeColors();
+  const rows = [
+    { key: 'fast', label: t('occasions.fastStat'), icon: 'crescent' as const, text: t('occasions.statDays', occasions.fast), ...occasions.fast },
+    { key: 'kahf', label: t('occasions.kahfStat'), icon: 'list' as const, text: t('occasions.statFridays', occasions.kahf), ...occasions.kahf },
+  ].filter((r) => r.due > 0);
+  if (!rows.length) return null;
+  return (
+    <View className="gap-3 rounded-[20px] bg-well p-4 dark:bg-well-dark">
+      <Text variant="label">{t('occasions.statsTitle')}</Text>
+      {rows.map((r) => (
+        <View key={r.key} className="flex-row items-center gap-2.5" accessible accessibilityLabel={`${r.label}: ${r.text}`}>
+          <Icon name={r.icon} size={18} color={c.muted} />
+          <Text variant="small" weight="semibold" className="flex-1">{r.label}</Text>
+          <Text variant="caption" tone="muted" tabular>{r.text}</Text>
+        </View>
+      ))}
+    </View>
   );
 }
 

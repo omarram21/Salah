@@ -6,9 +6,9 @@ import type { PrayerName } from '@/features/prayer-times';
 import { useSettingsStore } from '@/features/settings';
 import type { DateKey } from '@/shared/lib/date-key';
 import { useThemeColors } from '@/shared/theme/use-theme-colors';
-import { Icon, Text } from '@/shared/ui';
+import { Icon, type IconName, Text } from '@/shared/ui';
 
-import { SUNNAH, sunnahFor, type SunnahDef } from '../logic/sunnah';
+import { SUNNAH, sunnahFor, type ExtraId, type SunnahDef } from '../logic/sunnah';
 import { selectExtras, useTrackingStore } from '../store/tracking-store';
 
 type Props = {
@@ -40,7 +40,7 @@ export function SunnahChips({ date, prayer, withDuha, disabled, size = 'small' }
       {defs.map((def) => (
         <Chip
           key={def.id}
-          def={def}
+          icon={def.placement === 'witr' ? 'isha' : def.placement === 'duha' ? 'sunrise' : 'unmarked'}
           done={!!extras?.[def.id]}
           disabled={disabled}
           large={size === 'large'}
@@ -59,8 +59,33 @@ function chipLabel(def: SunnahDef, t: TFunction) {
   return t(def.placement === 'before' ? 'sunnah.before' : 'sunnah.after', { n: def.rakahs });
 }
 
+/** A single done / not-done chip for any extra (e.g. Al-Kahf on Friday, fasting in Ramadan). */
+export function ToggleChip({
+  date,
+  id,
+  label,
+  a11y,
+  icon,
+  disabled,
+  size = 'large',
+}: {
+  date: DateKey;
+  id: ExtraId;
+  label: string;
+  a11y?: string;
+  icon: IconName;
+  disabled?: boolean;
+  size?: 'small' | 'large';
+}) {
+  const done = useTrackingStore((s) => !!selectExtras(s)[date]?.[id]);
+  const setExtra = useTrackingStore((s) => s.setExtra);
+  return (
+    <Chip icon={icon} done={done} disabled={disabled} large={size === 'large'} label={label} a11y={a11y ?? label} onToggle={(on) => setExtra(date, id, on)} />
+  );
+}
+
 function Chip({
-  def,
+  icon,
   done,
   disabled,
   large,
@@ -68,7 +93,7 @@ function Chip({
   a11y,
   onToggle,
 }: {
-  def: SunnahDef;
+  icon: IconName;
   done: boolean;
   disabled?: boolean;
   large: boolean;
@@ -89,7 +114,7 @@ function Chip({
       className={`flex-row items-center rounded-full active:opacity-70 ${large ? 'h-10 gap-1.5 px-3.5' : 'h-7 gap-1 px-2.5'} ${
         done ? 'bg-ink dark:bg-ink-dark' : 'border border-line bg-paper dark:border-line-dark dark:bg-paper-dark'
       } ${disabled ? 'opacity-35' : ''}`}>
-      <Icon name={done ? 'check' : def.placement === 'witr' ? 'isha' : def.placement === 'duha' ? 'sunrise' : 'unmarked'} size={large ? 16 : 13} color={fg} strokeWidth={2.2} />
+      <Icon name={done ? 'check' : icon} size={large ? 16 : 13} color={fg} strokeWidth={2.2} />
       <Text variant={large ? 'small' : 'tiny'} weight="semibold" tone="none" style={{ color: done ? fg : c.ink }}>
         {label}
       </Text>

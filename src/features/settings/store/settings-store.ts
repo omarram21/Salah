@@ -62,7 +62,32 @@ export type SunnahSettings = {
   sunnahItems: Record<SunnahId, boolean>;
 };
 
+/** Friday: Dhuhr shown as Jumu'ah, and a reminder to read Surat al-Kahf. */
+export type FridayPrefs = {
+  jumuahLabel: boolean;
+  kahfReminder: boolean;
+  /** Location wall-clock hour (0–23) of the Al-Kahf reminder. */
+  kahfHour: number;
+};
+
+/** Ramadan mode turns on by itself from the Hijri date (month 9). */
+export type RamadanPrefs = {
+  enabled: boolean;
+  suhoorReminder: boolean;
+  /** Minutes before Fajr. */
+  suhoorMinutes: number;
+};
+
+export const KAHF_HOUR_OPTIONS = [8, 10, 12, 14] as const;
+export const SUHOOR_MINUTE_OPTIONS = [15, 30, 45, 60] as const;
+export const DEFAULT_FRIDAY: FridayPrefs = { jumuahLabel: true, kahfReminder: true, kahfHour: 10 };
+export const DEFAULT_RAMADAN: RamadanPrefs = { enabled: true, suhoorReminder: true, suhoorMinutes: 30 };
+
 export type SettingsState = TimeAdjustSettings & SunnahSettings & {
+  friday: FridayPrefs;
+  ramadan: RamadanPrefs;
+  /** Try the Friday / Ramadan screens on any day. Not saved: off again after a restart. */
+  preview: { friday: boolean; ramadan: boolean };
   language: Language;
   theme: ThemePreference;
   calculationMethod: CalculationMethodSetting;
@@ -83,6 +108,9 @@ type SettingsActions = {
   resetTimeAdjust: () => void;
   setSunnahEnabled: (on: boolean) => void;
   setSunnahItem: (id: SunnahId, on: boolean) => void;
+  updateFriday: (patch: Partial<FridayPrefs>) => void;
+  updateRamadan: (patch: Partial<RamadanPrefs>) => void;
+  setPreview: (patch: Partial<SettingsState['preview']>) => void;
 };
 
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
@@ -96,6 +124,9 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       ...DEFAULT_TIME_ADJUST,
       sunnahEnabled: true,
       sunnahItems: DEFAULT_SUNNAH_ITEMS,
+      friday: DEFAULT_FRIDAY,
+      ramadan: DEFAULT_RAMADAN,
+      preview: { friday: false, ramadan: false },
       setLanguage: (language) => set({ language }),
       setTheme: (theme) => set({ theme }),
       setCalculationMethod: (calculationMethod) => set({ calculationMethod }),
@@ -110,12 +141,15 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       resetTimeAdjust: () => set({ ...DEFAULT_TIME_ADJUST }),
       setSunnahEnabled: (sunnahEnabled) => set({ sunnahEnabled }),
       setSunnahItem: (id, on) => set((s) => ({ sunnahItems: { ...s.sunnahItems, [id]: on } })),
+      updateFriday: (patch) => set((s) => ({ friday: { ...s.friday, ...patch } })),
+      updateRamadan: (patch) => set((s) => ({ ramadan: { ...s.ramadan, ...patch } })),
+      setPreview: (patch) => set((s) => ({ preview: { ...s.preview, ...patch } })),
     }),
     {
       name: STORAGE_KEYS.settings,
       storage: zustandStorage,
       version: 1,
-      partialize: ({ language, theme, calculationMethod, asrMethod, alarms, timeOffsets, ishaEnd, hijriOffset, sunnahEnabled, sunnahItems }) => ({
+      partialize: ({ language, theme, calculationMethod, asrMethod, alarms, timeOffsets, ishaEnd, hijriOffset, sunnahEnabled, sunnahItems, friday, ramadan }) => ({
         language,
         theme,
         calculationMethod,
@@ -126,6 +160,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         hijriOffset,
         sunnahEnabled,
         sunnahItems,
+        friday,
+        ramadan,
       }),
       // Fill in fields added after a user's data was first saved.
       merge: (persisted, current) => {
@@ -135,6 +171,9 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
           ...p,
           timeOffsets: { ...DEFAULT_TIME_ADJUST.timeOffsets, ...p.timeOffsets },
           sunnahItems: { ...DEFAULT_SUNNAH_ITEMS, ...p.sunnahItems },
+          friday: { ...DEFAULT_FRIDAY, ...p.friday },
+          ramadan: { ...DEFAULT_RAMADAN, ...p.ramadan },
+          preview: current.preview,
           alarms: {
             ...DEFAULT_ALARMS,
             ...p.alarms,

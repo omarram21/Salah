@@ -91,7 +91,8 @@ export async function replaceSchedule(
         title,
         body,
         sound: contentSound(plan.kind, sound),
-        categoryIdentifier: PRAYER_CATEGORY,
+        // Only prayer alarms get the Prayed / In mosque buttons.
+        ...(plan.kind === 'start' || plan.kind === 'reminder' ? { categoryIdentifier: PRAYER_CATEGORY } : {}),
         data: { date: plan.date, prayer: plan.prayer, kind: plan.kind, at: plan.at, end: plan.end } satisfies PrayerNotificationData,
       },
       trigger: {

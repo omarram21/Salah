@@ -17,6 +17,8 @@ import { Icon, Text } from '@/shared/ui';
 type Props = {
   day: PrayerDay;
   prayer: PrayerName;
+  /** Display name ("Jumu'ah" for Dhuhr on Friday). */
+  name: string;
   timing: PrayerTiming;
   /** End of the window, for "ends in" while the prayer is current. */
   endsAt: number | null;
@@ -31,13 +33,12 @@ type Props = {
  * - ended & not marked → "?" (tap: picker with "late" suggested);
  * - not started → its alarm bell (tap to turn that prayer's alarm on/off).
  */
-export function TodayPrayerRow({ day, prayer, timing, endsAt, now, last }: Props) {
+export function TodayPrayerRow({ day, prayer, name, timing, endsAt, now, last }: Props) {
   const { t } = useTranslation();
   const { c } = useThemeColors();
   const { status, tap, openSheet, mark, sheet } = usePrayerStatus(day.date, prayer, timing);
   const alarms = useSettingsStore((s) => s.alarms);
   const setPrayerAlarm = useSettingsStore((s) => s.setPrayerAlarm);
-  const name = t(`prayers.${prayer}`);
   const time = formatWallShort(day.times[prayer].wall);
   const border = last ? '' : 'border-b border-line dark:border-line-dark';
 

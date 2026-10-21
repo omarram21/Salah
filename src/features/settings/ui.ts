@@ -4,3 +4,4 @@ export { AsrMethodPage, LanguagePage, ThemePage } from './components/choice-page
 export { MethodPicker } from './components/method-picker';
 export { SettingsView } from './components/settings-view';
 export { SunnahSettingsView } from './components/sunnah-settings-view';
+export { OccasionsSettingsView } from './components/occasions-settings-view';
