@@ -12,14 +12,17 @@ import { notificationContent } from '../logic/content';
 import {
   cancelPrayerAlarms,
   configureNotificationHandler,
+  registerPrayerActions,
   ensureChannels,
   getPermission,
   replaceSchedule,
 } from '../services/notification-service';
 import { channelNames } from '../logic/channel-names';
+import { listenForNotificationActions } from '../services/action-handler';
 import { useNotificationPermission } from '../store/permission-store';
 
 configureNotificationHandler();
+listenForNotificationActions();
 
 const DEBOUNCE_MS = 800;
 
@@ -48,6 +51,7 @@ export function useNotificationSync() {
           return;
         }
         await ensureChannels(channelNames(t));
+        await registerPrayerActions({ prayed: t('alarms.actionPrayed'), mosque: t('alarms.actionMosque') });
         const permission = await getPermission({ prompt: index.size > 0 });
         if (cancelled) return;
         setPermission(permission);

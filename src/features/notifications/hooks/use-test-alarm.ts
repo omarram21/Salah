@@ -7,7 +7,12 @@ import { deviceUtcOffsetMin } from '@/shared/lib/date-key';
 
 import { notificationContent } from '../logic/content';
 import { channelNames } from '../logic/channel-names';
-import { ensureChannels, getPermission, scheduleTestAlarms } from '../services/notification-service';
+import {
+  ensureChannels,
+  getPermission,
+  registerPrayerActions,
+  scheduleTestAlarms,
+} from '../services/notification-service';
 import { useNotificationPermission } from '../store/permission-store';
 
 export const TEST_START_SECONDS = 5;
@@ -24,6 +29,7 @@ export function useTestAlarm() {
 
   const send = async () => {
     await ensureChannels(channelNames(t));
+    await registerPrayerActions({ prayed: t('alarms.actionPrayed'), mosque: t('alarms.actionMosque') });
     const permission = await getPermission({ prompt: true });
     setPermission(permission);
     if (permission !== 'granted') {

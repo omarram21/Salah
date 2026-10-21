@@ -14,6 +14,8 @@ export type PlannedNotification = {
   date: DateKey;
   prayer: PrayerName;
   at: number;
+  /** End of the prayer's window, so a "Prayed" tap can tell on time from late. */
+  end: number;
 };
 
 type Input = {
@@ -44,14 +46,14 @@ export function buildSchedule({ index, records, prefs, now, today }: Input): Pla
       if (!window) continue;
 
       if (window.start > now) {
-        plans.push({ id: `${date}:${prayer}:start`, kind: 'start', date, prayer, at: window.start });
+        plans.push({ id: `${date}:${prayer}:start`, kind: 'start', date, prayer, at: window.start, end: window.end });
       }
 
       if (prefs.reminderEnabled && !records[date]?.[prayer]) {
         const at = window.end - prefs.reminderMinutes * 60_000;
         // Skip when the window is shorter than the reminder offset.
         if (at > now && at > window.start) {
-          plans.push({ id: `${date}:${prayer}:reminder`, kind: 'reminder', date, prayer, at });
+          plans.push({ id: `${date}:${prayer}:reminder`, kind: 'reminder', date, prayer, at, end: window.end });
         }
       }
     }

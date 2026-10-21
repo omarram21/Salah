@@ -147,6 +147,8 @@ export const en = {
     reminderTitle: '{{prayer}} time is ending',
     reminderBody: '{{minutes}} minutes left for {{prayer}}. Have you prayed?',
     channelName: 'Prayer times',
+    actionPrayed: 'Prayed',
+    actionMosque: 'In mosque',
     channelAlarm: 'Prayer alarm · {{sound}}',
     channelReminder: 'Prayer reminder',
     testTitle: 'Test · {{title}}',

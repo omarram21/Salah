@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { ALARM_SOUNDS, type AlarmSound } from '@/features/settings';
 
+import { PRAYER_CATEGORY, type PrayerNotificationData } from '../logic/actions';
 import type { PlannedNotification } from '../logic/build-schedule';
 import type { NotificationContent } from '../logic/content';
 import { channelFor, contentSound, REMINDER_FILE, SOUND_FILE } from '../sounds';
@@ -46,6 +47,17 @@ export async function ensureChannels(names: { alarm: (sound: AlarmSound) => stri
   ]);
 }
 
+/**
+ * The "Prayed" / "In mosque" buttons. Neither opens the app: the tap is handled in the
+ * background (see action-handler.ts). Call again when the language changes.
+ */
+export async function registerPrayerActions(labels: { prayed: string; mosque: string }) {
+  await Notifications.setNotificationCategoryAsync(PRAYER_CATEGORY, [
+    { identifier: 'prayed', buttonTitle: labels.prayed, options: { opensAppToForeground: false } },
+    { identifier: 'mosque', buttonTitle: labels.mosque, options: { opensAppToForeground: false } },
+  ]);
+}
+
 export async function getPermission({ prompt }: { prompt: boolean }): Promise<PermissionStatus> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return 'granted';
@@ -79,7 +91,8 @@ export async function replaceSchedule(
         title,
         body,
         sound: contentSound(plan.kind, sound),
-        data: { date: plan.date, prayer: plan.prayer, kind: plan.kind, at: plan.at },
+        categoryIdentifier: PRAYER_CATEGORY,
+        data: { date: plan.date, prayer: plan.prayer, kind: plan.kind, at: plan.at, end: plan.end } satisfies PrayerNotificationData,
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -99,7 +112,13 @@ export async function scheduleTestAlarms(
     items.map(({ content, inSeconds, kind }, i) =>
       Notifications.scheduleNotificationAsync({
         identifier: `${TEST_ID_PREFIX}${Date.now()}-${i}`,
-        content: { ...content, sound: contentSound(kind, sound), data: { test: true, at: Date.now() + inSeconds * 1000 } },
+        // Test alarms show the buttons too; tapping them doesn't change any records.
+        content: {
+          ...content,
+          sound: contentSound(kind, sound),
+          categoryIdentifier: PRAYER_CATEGORY,
+          data: { test: true, at: Date.now() + inSeconds * 1000 },
+        },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: inSeconds,

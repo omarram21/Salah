@@ -149,6 +149,8 @@ export const ar: Translations = {
     reminderTitle: 'وقت {{prayer}} ينتهي قريبًا',
     reminderBody: 'بقي {{minutes}} دقيقة على انتهاء وقت {{prayer}}. هل صلّيت؟',
     channelName: 'مواقيت الصلاة',
+    actionPrayed: 'صلّيت',
+    actionMosque: 'في المسجد',
     channelAlarm: 'تنبيه الصلاة · {{sound}}',
     channelReminder: 'تذكير الصلاة',
     testTitle: 'تجربة · {{title}}',

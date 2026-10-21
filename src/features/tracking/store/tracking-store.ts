@@ -20,6 +20,11 @@ type TrackingState = PersistedTracking & {
   setStatus: (date: DateKey, prayer: PrayerName, status: PrayerStatus, now?: number) => void;
   setStatuses: (date: DateKey, prayers: PrayerName[], status: PrayerStatus, now?: number) => void;
   clearStatus: (date: DateKey, prayer: PrayerName) => void;
+  /**
+   * From a notification button: writes to the REAL records (even in demo mode) and only
+   * when the prayer isn't marked yet. Returns whether it saved.
+   */
+  markRealIfUnmarked: (date: DateKey, prayer: PrayerName, status: PrayerStatus, now?: number) => boolean;
   /** Records the first-use date of the REAL dataset once. */
   ensureStarted: (today: DateKey) => void;
   /** Switch to demo data (generated on first use, then kept with any edits). */
@@ -55,7 +60,7 @@ function withRecords(d: Dataset, date: DateKey, records: RecordsByDate): Dataset
 
 export const useTrackingStore = create<TrackingState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       datasets: { real: EMPTY, demo: null },
       active: 'real',
 
@@ -88,6 +93,21 @@ export const useTrackingStore = create<TrackingState>()(
             return { ...d, records };
           }),
         ),
+
+      markRealIfUnmarked: (date, prayer, status, now = Date.now()) => {
+        const real = get().datasets.real;
+        if (real.records[date]?.[prayer]) return false;
+        set((s) => ({
+          datasets: {
+            ...s.datasets,
+            real: withRecords(s.datasets.real, date, {
+              ...s.datasets.real.records,
+              [date]: { ...s.datasets.real.records[date], [prayer]: { status, updatedAt: now } },
+            }),
+          },
+        }));
+        return true;
+      },
 
       ensureStarted: (today) =>
         set((s) =>

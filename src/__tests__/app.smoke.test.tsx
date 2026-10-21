@@ -160,6 +160,14 @@ describe('app', () => {
     expect(start.trigger.channelId).toBe('prayer-oud');
     expect(reminder.content.sound).toBe('reminder.wav');
     expect(reminder.trigger.channelId).toBe('prayer-reminder');
+    // Both carry the "Prayed" / "In mosque" buttons and the window end.
+    expect(start.content.categoryIdentifier).toBe('prayer');
+    expect(reminder.content.categoryIdentifier).toBe('prayer');
+    expect(typeof start.content.data.end).toBe('number');
+    expect(Notifications.setNotificationCategoryAsync).toHaveBeenCalledWith(
+      'prayer',
+      expect.arrayContaining([expect.objectContaining({ identifier: 'prayed', buttonTitle: 'Prayed' })]),
+    );
   });
 
   it('Sound page: previews a sound and saves the choice', async () => {
