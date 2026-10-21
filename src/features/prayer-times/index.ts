@@ -4,6 +4,7 @@ export { usePrayerParams } from './hooks/use-prayer-params';
 export { usePrayerTimesSync } from './hooks/use-prayer-times-sync';
 export { useToday } from './hooks/use-today';
 export { locationToday } from './model/today';
+export { applyAdjustments, hasAdjustments, shiftWall, type TimeAdjustments } from './model/adjust';
 export type { PrayerTimesParams } from './model/params';
 export {
   getCurrentPrayer,

@@ -11,7 +11,7 @@ module.exports = {
         paper: { DEFAULT: '#FFFFFF', dark: '#0B0B0C' },
         ink: { DEFAULT: '#111111', dark: '#F2F2F0' },
         muted: { DEFAULT: '#6E6E69', dark: '#9A9A94' },
-        faint: { DEFAULT: '#8A8A85', dark: '#7A7A74' },
+        faint: { DEFAULT: '#71716B', dark: '#85857F' },
         line: { DEFAULT: '#EFEFEC', dark: '#232326' },
         chip: { DEFAULT: '#F5F5F3', dark: '#18181B' },
         well: { DEFAULT: '#F7F7F5', dark: '#141416' },

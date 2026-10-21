@@ -3,7 +3,13 @@ import { Pressable, View } from 'react-native';
 
 import { PRAYER_ICON, type PrayerDay, type PrayerName } from '@/features/prayer-times';
 import { useSettingsStore } from '@/features/settings';
-import { StatusCircle, StatusQuickPicker, usePrayerStatus, type PrayerTiming } from '@/features/tracking';
+import {
+  StatusCircle,
+  StatusQuickPicker,
+  SunnahChips,
+  usePrayerStatus,
+  type PrayerTiming,
+} from '@/features/tracking';
 import { formatCountdown, formatWallShort } from '@/shared/lib/format';
 import { useThemeColors } from '@/shared/theme/use-theme-colors';
 import { Icon, Text } from '@/shared/ui';
@@ -43,12 +49,17 @@ export function TodayPrayerRow({ day, prayer, timing, endsAt, now, last }: Props
           <View className="flex-1">
             <Text variant="body" weight="bold" tone="accent">{`${name} · ${t('today.now')}`}</Text>
             {endsAt ? (
-              <Text variant="tiny" tone="muted" tabular>{t('today.endsIn', { time: formatCountdown(endsAt - now) })}</Text>
+              <Text variant="tiny" tone="muted" tabular>
+                {t('today.endsIn', { time: formatCountdown(endsAt - now) })}
+              </Text>
             ) : null}
           </View>
-          <Text variant="small" tone="muted" tabular>{time}</Text>
+          <Text variant="small" tone="muted" tabular>
+            {time}
+          </Text>
         </View>
         <StatusQuickPicker prayerLabel={name} onPick={mark} />
+        <SunnahChips date={day.date} prayer={prayer} />
         {sheet}
       </View>
     );
@@ -57,36 +68,50 @@ export function TodayPrayerRow({ day, prayer, timing, endsAt, now, last }: Props
   const upcoming = timing === 'upcoming' && !status;
   const alarmOn = alarms.enabled && alarms.prayers[prayer];
   return (
-    <View className={`min-h-[60px] flex-row items-center gap-3.5 ${border}`}>
-      <Icon name={PRAYER_ICON[prayer]} color={c.muted} />
-      <View className="flex-1">
-        <Text variant="body" weight="semibold" tone={upcoming ? 'muted' : 'ink'}>{name}</Text>
-        {prayer === 'fajr' ? (
-          <Text variant="tiny" tone="faint" tabular>{`${t('prayers.sunrise')} ${formatWallShort(day.times.sunrise.wall)}`}</Text>
-        ) : null}
+    <View className={`gap-2 py-3 ${border}`}>
+      <View className="min-h-[44px] flex-row items-center gap-3.5">
+        <Icon name={PRAYER_ICON[prayer]} color={c.muted} />
+        <View className="flex-1">
+          <Text variant="body" weight="semibold" tone={upcoming ? 'muted' : 'ink'}>
+            {name}
+          </Text>
+          {prayer === 'fajr' ? (
+            <Text
+              variant="tiny"
+              tone="faint"
+              tabular
+            >{`${t('prayers.sunrise')} ${formatWallShort(day.times.sunrise.wall)}`}</Text>
+          ) : null}
+        </View>
+        <Text variant="small" tone="muted" tabular>
+          {time}
+        </Text>
+        {upcoming ? (
+          <Pressable
+            accessibilityRole="switch"
+            accessibilityState={{ checked: alarmOn }}
+            accessibilityLabel={t('today.alarmFor', { prayer: name })}
+            onPress={() => setPrayerAlarm(prayer, !alarms.prayers[prayer])}
+            disabled={!alarms.enabled}
+            hitSlop={4}
+            className="size-11 items-center justify-center rounded-full active:bg-chip dark:active:bg-chip-dark"
+          >
+            <Icon name={alarmOn ? 'bell' : 'bellOff'} size={20} color={c.muted} />
+          </Pressable>
+        ) : (
+          <StatusCircle
+            status={status}
+            onPress={tap}
+            onLongPress={openSheet}
+            accessibilityLabel={`${name}: ${t(`status.${status ?? 'unmarked'}`)}`}
+            accessibilityHint={status ? t('status.changeHint') : t('status.markHint')}
+          />
+        )}
+        {sheet}
       </View>
-      <Text variant="small" tone="muted" tabular>{time}</Text>
-      {upcoming ? (
-        <Pressable
-          accessibilityRole="switch"
-          accessibilityState={{ checked: alarmOn }}
-          accessibilityLabel={t('today.alarmFor', { prayer: name })}
-          onPress={() => setPrayerAlarm(prayer, !alarms.prayers[prayer])}
-          disabled={!alarms.enabled}
-          hitSlop={4}
-          className="size-11 items-center justify-center rounded-full active:bg-chip dark:active:bg-chip-dark">
-          <Icon name={alarmOn ? 'bell' : 'bellOff'} size={20} color={c.muted} />
-        </Pressable>
-      ) : (
-        <StatusCircle
-          status={status}
-          onPress={tap}
-          onLongPress={openSheet}
-          accessibilityLabel={`${name}: ${t(`status.${status ?? 'unmarked'}`)}`}
-          accessibilityHint={status ? t('status.changeHint') : t('status.markHint')}
-        />
-      )}
-      {sheet}
+      <View className="ps-9">
+        <SunnahChips date={day.date} prayer={prayer} disabled={timing === 'upcoming'} />
+      </View>
     </View>
   );
 }

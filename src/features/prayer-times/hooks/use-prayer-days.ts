@@ -1,5 +1,8 @@
 import { useMemo } from 'react';
 
+import { useSettingsStore } from '@/features/settings';
+
+import { applyAdjustments } from '../model/adjust';
 import { paramsKey, type PrayerTimesParams } from '../model/params';
 import { indexDays, type DayIndex } from '../model/timeline';
 import type { CalculationMethodInfo } from '../model/types';
@@ -12,9 +15,12 @@ export type PrayerData = {
   timezone: string | null;
 };
 
-/** All cached days for the current params, indexed by date. */
+/** All cached days for the current params, with the user's time adjustments applied, indexed by date. */
 export function usePrayerDays(params: PrayerTimesParams | null): PrayerData {
   const months = usePrayerTimesStore((s) => s.months);
+  const offsets = useSettingsStore((s) => s.timeOffsets);
+  const ishaEnd = useSettingsStore((s) => s.ishaEnd);
+  const hijriOffset = useSettingsStore((s) => s.hijriOffset);
   return useMemo(() => {
     if (!params) return { index: new Map(), method: null, timezone: null };
     const pk = `${paramsKey(params)}#`;
@@ -24,9 +30,9 @@ export function usePrayerDays(params: PrayerTimesParams | null): PrayerData {
       .map(([, m]) => m);
     const latest = mine.at(-1);
     return {
-      index: indexDays(mine.flatMap((m) => m.days)),
+      index: indexDays(applyAdjustments(mine.flatMap((m) => m.days), { offsets, ishaEnd, hijriOffset })),
       method: latest?.method ?? null,
       timezone: latest?.timezone ?? null,
     };
-  }, [months, params]);
+  }, [months, params, offsets, ishaEnd, hijriOffset]);
 }

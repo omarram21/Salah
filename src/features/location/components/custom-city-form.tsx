@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { useThemeColors } from '@/shared/theme/use-theme-colors';
 import { Button, Card, Input, Text } from '@/shared/ui';
 
 import type { AppLocation } from '../model/types';
@@ -14,6 +15,7 @@ export function CustomCityForm({ onSelect }: { onSelect: (location: AppLocation)
   const [country, setCountry] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [result, setResult] = useState<ResolvedCity | null>(null);
+  const { c } = useThemeColors();
 
   const find = async () => {
     setState('loading');
@@ -45,7 +47,7 @@ export function CustomCityForm({ onSelect }: { onSelect: (location: AppLocation)
         disabled={!city.trim() || !country.trim()}
         onPress={find}
       />
-      {state === 'error' ? <Text variant="caption" tone="none" style={{ color: '#DC2626' }}>{t('location.notFound')}</Text> : null}
+      {state === 'error' ? <Text variant="caption" tone="none" style={{ color: c.danger }}>{t('location.notFound')}</Text> : null}
       {result ? (
         <Card className="gap-2">
           <Text variant="small" weight="semibold">

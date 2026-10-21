@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
 import { PRAYER_ICON, PRAYERS, type DayIndex } from '@/features/prayer-times';
-import { DemoBanner, STATUS_STYLE, STATUSES, StatusIcon } from '@/features/tracking';
+import { DemoBanner, STATUS_STYLE, STATUSES, StatusIcon, SUNNAH_IDS, type ExtrasCount } from '@/features/tracking';
 import { useDateFormat } from '@/shared/i18n';
 import type { DateKey } from '@/shared/lib/date-key';
 import { useThemeColors } from '@/shared/theme/use-theme-colors';
@@ -32,7 +32,7 @@ export function StatsView({ index, now, today }: Props) {
   const fmt = useDateFormat();
   const { c } = useThemeColors();
   const [period, setPeriod] = useState<StatsPeriod>('week');
-  const { summary, current, best } = useStats(period, index, now, today);
+  const { summary, current, best, extras, witrStreak } = useStats(period, index, now, today);
   const pct = summary.due ? Math.round((onTimeCount(summary.total) / summary.due) * 100) : null;
   const insight = prayerInsight(summary);
   const range =
@@ -133,7 +133,46 @@ export function StatsView({ index, now, today }: Props) {
           </Text>
         </View>
       ) : null}
+
+      {extras ? <ExtrasCard extras={extras} witrStreak={witrStreak} /> : null}
     </Screen>
+  );
+}
+
+/** Sunnah & Witr: done/due per tracked item, plus the Witr streak. */
+function ExtrasCard({ extras, witrStreak }: { extras: ExtrasCount; witrStreak: number | null }) {
+  const { t } = useTranslation();
+  const { c } = useThemeColors();
+  const rows = SUNNAH_IDS.flatMap((id) => (extras.byId[id] ? [{ id, ...extras.byId[id] }] : []));
+  if (!rows.length) return null;
+  return (
+    <View className="gap-3 rounded-[20px] bg-well p-4 dark:bg-well-dark">
+      <View className="flex-row items-center gap-2">
+        <Icon name="crescent" size={18} color={c.ink} />
+        <View className="flex-1">
+          <Text variant="label">{t('sunnah.title')}</Text>
+          <Text variant="tiny" tone="muted">{t('sunnah.statsBody')}</Text>
+        </View>
+        <Text variant="heading" tabular>{extras.due ? `${Math.round((extras.done / extras.due) * 100)}%` : '—'}</Text>
+      </View>
+      {rows.map((r) => (
+        <View key={r.id} className="flex-row items-center gap-2.5" accessible accessibilityLabel={`${t(`sunnah.names.${r.id}`)}: ${t('sunnah.count', { done: r.done, due: r.due })}`}>
+          <Text variant="small" weight="semibold" className="w-[124px]" numberOfLines={1}>{t(`sunnah.short.${r.id}`)}</Text>
+          <View className="h-2 flex-1 flex-row overflow-hidden rounded-full bg-chip dark:bg-chip-dark">
+            {r.done ? <View className="bg-ink dark:bg-ink-dark" style={{ flex: r.done }} /> : null}
+            {r.due - r.done ? <View style={{ flex: r.due - r.done }} /> : null}
+          </View>
+          <Text variant="caption" tone="muted" tabular className="w-11" align="end">{`${r.done}/${r.due}`}</Text>
+        </View>
+      ))}
+      {witrStreak !== null ? (
+        <View className="flex-row items-center gap-2 border-t border-[#E4E4E0] pt-3 dark:border-line-dark">
+          <Icon name="isha" size={16} color={c.accent} strokeWidth={2} />
+          <Text variant="caption" weight="semibold" className="flex-1">{t('sunnah.witrStreak')}</Text>
+          <Text variant="caption" weight="bold" tone="accent" tabular>{t('stats.days', { n: witrStreak })}</Text>
+        </View>
+      ) : null}
+    </View>
   );
 }
 

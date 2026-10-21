@@ -28,6 +28,8 @@ export type PrayerDay = {
   utcOffsetMin: number;
   times: Record<TimeName, PrayerTime>;
   hijri: HijriDate;
+  /** Set when Isha should end at Islamic midnight instead of the next Fajr. */
+  ishaEndsAt?: number;
 };
 
 export type CalculationMethodInfo = { id: number; name: string };

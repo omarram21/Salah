@@ -9,19 +9,24 @@ import { useLocationStore } from '@/features/location';
 import { usePrayerTimesStore } from '@/features/prayer-times';
 import { cairo, cairoNovHead, cairoOctTail } from '@/features/prayer-times/model/__fixtures__/cairo';
 import { cacheKey } from '@/features/prayer-times/store/prayer-times-store';
-import { DEFAULT_ALARMS, useSettingsStore } from '@/features/settings';
-import { selectRecords, useTrackingStore } from '@/features/tracking';
+import { DEFAULT_ALARMS, DEFAULT_TIME_ADJUST, useSettingsStore } from '@/features/settings';
+import { DEFAULT_SUNNAH_ITEMS, selectExtras, selectRecords, useTrackingStore } from '@/features/tracking';
 
 const PK = '30.044,31.236|mauto|s0';
 const records = () => selectRecords(useTrackingStore.getState());
+const extras = () => selectExtras(useTrackingStore.getState());
 const NOW = cairo('2026-10-31T15:30', 2); // during Asr, 31 Oct
 
 function seed({ withLocation = true, withData = true } = {}) {
   useSettingsStore.setState({
+    theme: 'system',
+    ...DEFAULT_TIME_ADJUST,
     language: 'en',
     calculationMethod: 'auto',
     asrMethod: 'shafi',
     alarms: DEFAULT_ALARMS,
+    sunnahEnabled: true,
+    sunnahItems: DEFAULT_SUNNAH_ITEMS,
   });
   useLocationStore.setState({
     location: withLocation
@@ -36,7 +41,7 @@ function seed({ withLocation = true, withData = true } = {}) {
       : {},
   });
   useTrackingStore.setState({
-    datasets: { real: { records: {}, trackingSince: '2026-10-28' }, demo: null },
+    datasets: { real: { records: {}, trackingSince: '2026-10-28', extras: {} }, demo: null },
     active: 'real',
   });
 }
@@ -282,4 +287,104 @@ describe('app', () => {
     fireEvent.press(await screen.findByText('Umm Al-Qura University, Makkah'));
     expect(useSettingsStore.getState().calculationMethod).toBe(4);
   });
+
+  it('Qibla: shows the direction, distance and which way to turn', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/qibla' });
+    // Cairo → Qibla ≈ 136°. The mocked phone points at 100°, so turn right ~36°.
+    expect(await screen.findByText(/^Turn right 3\d°$/)).toBeTruthy();
+    expect(screen.getByText(/^13\d° SE$/)).toBeTruthy();
+    expect(screen.getByText(/^1,2\d\d km$/)).toBeTruthy();
+  });
+
+  it('Qibla: says when you are facing it', async () => {
+    const location = jest.requireMock('expo-location');
+    location.watchHeadingAsync.mockImplementationOnce(async (cb: (h: object) => void) => {
+      cb({ trueHeading: 135, magHeading: 131, accuracy: 3 });
+      return { remove: jest.fn() };
+    });
+    seed();
+    renderRouter('./src/app', { initialUrl: '/qibla' });
+    expect(await screen.findByText('Facing the Qibla')).toBeTruthy();
+  });
+
+  it('Adjust times: shifting Isha changes the time everywhere, and can be reset', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/adjust-times' });
+    fireEvent.press(await screen.findByLabelText('Increase Isha'));
+    fireEvent.press(screen.getByLabelText('Increase Isha'));
+    expect(useSettingsStore.getState().timeOffsets.isha).toBe(2);
+    expect(await screen.findByText('6:30 (+2 min)')).toBeTruthy(); // 6:28 + 2
+    fireEvent.press(screen.getByText('Midnight'));
+    expect(useSettingsStore.getState().ishaEnd).toBe('midnight');
+    fireEvent.press(screen.getByText('Reset all adjustments'));
+    expect(useSettingsStore.getState().timeOffsets.isha).toBe(0);
+    expect(useSettingsStore.getState().ishaEnd).toBe('fajr');
+  });
+
+  it('Sunnah: chips on Today toggle done, upcoming ones are disabled, and Stats counts them', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/' });
+    const fajr = await screen.findByLabelText('Sunnah before Fajr, 2 rak’ahs');
+    fireEvent.press(fajr);
+    expect(extras()['2026-10-31']?.fajrBefore).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Sunnah before Fajr, 2 rak’ahs'));
+    expect(extras()['2026-10-31']?.fajrBefore).toBeUndefined();
+    expect(screen.getByLabelText('Witr').props.accessibilityState?.disabled).toBe(true);
+
+    fireEvent.press(screen.getByLabelText('Sunnah after Dhuhr, 2 rak’ahs'));
+    renderRouter('./src/app', { initialUrl: '/stats' });
+    expect(await screen.findByText('Sunnah & Witr')).toBeTruthy();
+    expect(screen.getByLabelText('Sunnah after Dhuhr, 2 rak’ahs: 1 of 4')).toBeTruthy();
+    expect(screen.getByText('Witr streak')).toBeTruthy();
+  });
+
+  it('Sunnah: Witr after midnight counts for last night; History shows the summary', async () => {
+    seed();
+    jest.setSystemTime(cairo('2026-11-01T01:00', 2));
+    renderRouter('./src/app', { initialUrl: '/' });
+    expect(await screen.findByText('Last night · Isha sunnah & Witr')).toBeTruthy();
+    fireEvent.press(screen.getAllByLabelText('Witr')[0]!);
+    expect(extras()['2026-10-31']?.witr).toBeTruthy();
+    expect(extras()['2026-11-01']?.witr).toBeUndefined();
+
+    renderRouter('./src/app', { initialUrl: '/history' });
+    fireEvent.press(await screen.findByLabelText('Previous month'));
+    fireEvent.press(await screen.findByLabelText(/^Sat, 31 Oct/));
+    expect(await screen.findByText('Sunnah 0/5 · Witr ✓')).toBeTruthy();
+  });
+
+  it('Sunnah settings: turning tracking off hides the chips; Duha can be added', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/settings' });
+    fireEvent.press(await screen.findByLabelText('Sunnah & Witr, 6 on'));
+    fireEvent.press(await screen.findByLabelText('Duha prayer'));
+    expect(useSettingsStore.getState().sunnahItems.duha).toBe(true);
+    fireEvent.press(screen.getByLabelText('Track sunnah & Witr'));
+    expect(useSettingsStore.getState().sunnahEnabled).toBe(false);
+
+    renderRouter('./src/app', { initialUrl: '/' });
+    expect(await screen.findByText('Asr · Now')).toBeTruthy();
+    expect(screen.queryByLabelText('Witr')).toBeNull();
+  });
+
+  it('Edit day: each prayer step has its sunnah chips (Duha with Dhuhr)', async () => {
+    seed();
+    useSettingsStore.getState().setSunnahItem('duha', true);
+    renderRouter('./src/app', { initialUrl: '/day/2026-10-30' });
+    fireEvent.press(await screen.findByLabelText('Sunnah before Fajr, 2 rak’ahs'));
+    expect(extras()['2026-10-30']?.fajrBefore).toBeTruthy();
+  });
+
+  it.each(['/', '/history', '/stats', '/settings', '/alarms', '/alarm-sound', '/qibla', '/adjust-times', '/sunnah', '/day/2026-10-30', '/location'])(
+    'Dark mode: %s renders',
+    async (url) => {
+      seed();
+      useSettingsStore.setState({ theme: 'dark' });
+      renderRouter('./src/app', { initialUrl: url });
+      await waitFor(() => expect(screen.toJSON()).toBeTruthy());
+      expect(screen.UNSAFE_root.findAll(() => true).length).toBeGreaterThan(20);
+    },
+  );
 });
+

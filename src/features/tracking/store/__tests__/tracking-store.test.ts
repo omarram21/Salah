@@ -10,7 +10,7 @@ const s = () => useTrackingStore.getState();
 const records = () => selectRecords(s());
 
 beforeEach(() =>
-  useTrackingStore.setState({ datasets: { real: { records: {}, trackingSince: null }, demo: null }, active: 'real' }),
+  useTrackingStore.setState({ datasets: { real: { records: {}, trackingSince: null, extras: {} }, demo: null }, active: 'real' }),
 );
 
 describe('tracking store', () => {
@@ -85,15 +85,40 @@ describe('migrateTrackingState', () => {
       trackingSince: '2026-10-18',
     };
     expect(migrateTrackingState(v1, 1)).toEqual({
-      datasets: { real: v1, demo: null },
+      datasets: { real: { ...v1, extras: {} }, demo: null },
       active: 'real',
+    });
+  });
+
+  it('upgrades v2 (current installs): keeps every record and adds empty sunnah extras', () => {
+    const real = { records: { '2026-10-18': { isha: { status: 'mosque', updatedAt: 9 } } }, trackingSince: '2026-10-01' };
+    const demo = { records: {}, trackingSince: '2026-07-20' };
+    expect(migrateTrackingState({ datasets: { real, demo }, active: 'demo' }, 2)).toEqual({
+      datasets: { real: { ...real, extras: {} }, demo: { ...demo, extras: {} } },
+      active: 'demo',
     });
   });
 
   it('handles missing v1 data', () => {
     expect(migrateTrackingState(undefined, 0)).toEqual({
-      datasets: { real: { records: {}, trackingSince: null }, demo: null },
+      datasets: { real: { records: {}, trackingSince: null, extras: {} }, demo: null },
       active: 'real',
     });
+  });
+});
+
+describe('sunnah extras', () => {
+  it('toggles an extra on and off without touching prayer records', () => {
+    s().setStatus('2026-10-18', 'isha', 'onTime');
+    s().setExtra('2026-10-18', 'witr', true, 7);
+    expect(selectActive(s()).extras['2026-10-18']).toEqual({ witr: 7 });
+    s().setExtra('2026-10-18', 'witr', false);
+    expect(selectActive(s()).extras['2026-10-18']).toBeUndefined();
+    expect(records()['2026-10-18']?.isha?.status).toBe('onTime');
+  });
+
+  it('demo data includes sunnah history', () => {
+    s().enableDemo('2026-10-19');
+    expect(Object.keys(selectActive(s()).extras).length).toBeGreaterThan(30);
   });
 });

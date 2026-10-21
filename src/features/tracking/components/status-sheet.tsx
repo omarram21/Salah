@@ -68,8 +68,8 @@ export function StatusSheet({ visible, title, subtitle, icon, value, suggested, 
                     {t(`status.${status}`)}
                   </Text>
                   {suggested === status && !selected ? (
-                    <View className="rounded-full bg-[#FDE7C8] px-2 py-0.5 dark:bg-[#3A2A14]">
-                      <Text variant="micro" tone="none" style={{ color: '#8A4B00' }}>{t('status.suggested')}</Text>
+                    <View className="rounded-full px-2 py-0.5" style={{ backgroundColor: c.suggestBg }}>
+                      <Text variant="micro" tone="none" style={{ color: c.suggestFg }}>{t('status.suggested')}</Text>
                     </View>
                   ) : null}
                   {selected ? <Icon name="check" size={20} color={STATUS_STYLE[status].color} strokeWidth={2.4} /> : null}

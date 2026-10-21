@@ -50,7 +50,7 @@ export function SettingsRow({ icon, label, value, href, onPress, emphasis, trail
       {trailing ?? (
         <>
           {value ? <Text variant="small" tone="muted" numberOfLines={1} style={{ maxWidth: 170 }}>{value}</Text> : null}
-          {press ? <Icon name="chevronRight" size={16} color="#B4B4AF" strokeWidth={2} flip={isRTL} /> : null}
+          {press ? <Icon name="chevronRight" size={16} color={c.chevron} strokeWidth={2} flip={isRTL} /> : null}
         </>
       )}
     </>

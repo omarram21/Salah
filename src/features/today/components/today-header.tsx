@@ -31,13 +31,22 @@ export function TodayHeader({ date, hijri }: { date: DateKey; hijri: HijriDate |
           <Text variant="caption" tone="muted">{`${hijri.day} ${hijri.monthName[lang]}`}</Text>
         </View>
       ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('qibla.title')}
+        onPress={() => router.push('/qibla')}
+        hitSlop={8}
+        className="ms-auto min-h-8 flex-row items-center gap-1.5 active:opacity-60">
+        <Icon name="compass" size={15} color={c.muted} strokeWidth={2} />
+        <Text variant="caption" tone="muted">{t('qibla.short')}</Text>
+      </Pressable>
       {city ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${t('location.title')}: ${label}. ${t('location.change')}`}
           onPress={() => router.push('/location')}
           hitSlop={8}
-          className="ms-auto min-h-8 flex-row items-center gap-1.5 active:opacity-60">
+          className="min-h-8 flex-row items-center gap-1.5 active:opacity-60">
           <Icon name="pin" size={15} color={c.muted} strokeWidth={2} />
           <Text variant="caption" tone="muted">{city}</Text>
         </Pressable>

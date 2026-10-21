@@ -25,7 +25,7 @@ export function Button({ label, icon, variant = 'primary', loading, disabled, cl
   const v = VARIANTS[variant];
   const { c, isDark } = useThemeColors();
   const fg =
-    variant === 'primary' ? (isDark ? c.paper : '#FFFFFF') : variant === 'danger' ? '#DC2626' : c.ink;
+    variant === 'primary' ? (isDark ? c.paper : '#FFFFFF') : variant === 'danger' ? c.danger : c.ink;
   return (
     <Pressable
       accessibilityRole="button"

@@ -34,7 +34,11 @@ export function SettingsView() {
   const alarmsValue = !s.alarms.enabled ? t('settings.off') : onCount === 5 ? t('settings.allFive') : t('settings.nOfFive', { n: onCount });
   const reminderValue =
     s.alarms.enabled && s.alarms.reminderEnabled ? t('settings.minutesBeforeEnd', { n: s.alarms.reminderMinutes }) : t('settings.off');
+  const changed = PRAYERS.filter((p) => s.timeOffsets[p] !== 0).length + (s.ishaEnd !== 'fajr' ? 1 : 0) + (s.hijriOffset !== 0 ? 1 : 0);
+  const adjustValue = changed ? t('adjust.nChanges', { n: changed }) : t('adjust.none');
   const themeValue = t(`settings.theme${s.theme === 'system' ? 'System' : s.theme === 'light' ? 'Light' : 'Dark'}`);
+  const sunnahOn = Object.values(s.sunnahItems).filter(Boolean).length;
+  const sunnahValue = s.sunnahEnabled ? t('sunnah.on', { n: sunnahOn }) : t('settings.off');
   const version = Constants.expoConfig?.version ?? '';
 
   return (
@@ -50,7 +54,13 @@ export function SettingsView() {
       <SettingsGroup title={t('settings.sectionPrayerTimes')}>
         <SettingsRow icon="pin" label={t('location.title')} value={locationLabel?.split(/[,،]/)[0]} href="/location" />
         <SettingsRow icon="compass" label={t('settings.method')} value={methodValue} href="/calculation-method" />
+        <SettingsRow icon="timer" label={t('adjust.title')} value={adjustValue} href="/adjust-times" />
+        <SettingsRow icon="compass" label={t('qibla.title')} href="/qibla" />
         <SettingsRow icon="asr" label={t('settings.asrMethod')} value={s.asrMethod === 'hanafi' ? t('settings.asrHanafiShort') : t('settings.asrShafiShort')} href="/asr-method" />
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.sectionTracking')}>
+        <SettingsRow icon="crescent" label={t('sunnah.title')} value={sunnahValue} href="/sunnah" />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.sectionAlarms')}>

@@ -43,6 +43,7 @@ export function getPrayerWindow(index: DayIndex, date: DateKey, prayer: PrayerNa
     case 'maghrib':
       return { date, prayer, start, end: times.isha.at, estimatedEnd: false };
     case 'isha': {
+      if (day.ishaEndsAt !== undefined) return { date, prayer, start, end: day.ishaEndsAt, estimatedEnd: false };
       const next = index.get(addDays(date, 1));
       return next
         ? { date, prayer, start, end: next.times.fajr.at, estimatedEnd: false }

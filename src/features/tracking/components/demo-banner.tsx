@@ -1,18 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
+import { useThemeColors } from '@/shared/theme/use-theme-colors';
 import { Icon, Text } from '@/shared/ui';
 
 import { selectIsDemo, useTrackingStore } from '../store/tracking-store';
-
-const ORANGE = '#9A3412';
 
 /** Always-visible warning while demo data is shown, with a one-tap way out. */
 export function DemoBanner() {
   const { t } = useTranslation();
   const isDemo = useTrackingStore(selectIsDemo);
   const disableDemo = useTrackingStore((s) => s.disableDemo);
+  const { c } = useThemeColors();
   if (!isDemo) return null;
+  const ORANGE = c.demo;
 
   return (
     <View accessibilityRole="alert" className="flex-row items-center gap-2.5 rounded-2xl bg-accent-soft px-4 py-2.5 dark:bg-accent-soft-dark">

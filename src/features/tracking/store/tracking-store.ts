@@ -6,6 +6,7 @@ import type { DateKey } from '@/shared/lib/date-key';
 import { STORAGE_KEYS, zustandStorage } from '@/shared/lib/storage';
 
 import { generateDemoDataset } from '../demo/generate-demo';
+import type { SunnahId } from '../logic/sunnah';
 import type { Dataset, PrayerStatus, RecordsByDate } from '../logic/types';
 
 export type DatasetName = 'real' | 'demo';
@@ -25,6 +26,8 @@ type TrackingState = PersistedTracking & {
    * when the prayer isn't marked yet. Returns whether it saved.
    */
   markRealIfUnmarked: (date: DateKey, prayer: PrayerName, status: PrayerStatus, now?: number) => boolean;
+  /** Marks a sunnah / Witr / Duha done or not done for a date (active dataset). */
+  setExtra: (date: DateKey, id: SunnahId, done: boolean, now?: number) => void;
   /** Records the first-use date of the REAL dataset once. */
   ensureStarted: (today: DateKey) => void;
   /** Switch to demo data (generated on first use, then kept with any edits). */
@@ -35,7 +38,7 @@ type TrackingState = PersistedTracking & {
   disableDemo: () => void;
 };
 
-const EMPTY: Dataset = { records: {}, trackingSince: null };
+const EMPTY: Dataset = { records: {}, trackingSince: null, extras: {} };
 
 /** The dataset screens should show. */
 export function selectActive(s: PersistedTracking): Dataset {
@@ -43,6 +46,7 @@ export function selectActive(s: PersistedTracking): Dataset {
 }
 export const selectRecords = (s: PersistedTracking) => selectActive(s).records;
 export const selectTrackingSince = (s: PersistedTracking) => selectActive(s).trackingSince;
+export const selectExtras = (s: PersistedTracking) => selectActive(s).extras;
 export const selectIsDemo = (s: PersistedTracking) => s.active === 'demo' && s.datasets.demo !== null;
 
 /** Applies `fn` to the active dataset. */
@@ -53,6 +57,7 @@ function updateActive(s: PersistedTracking, fn: (d: Dataset) => Dataset): Partia
 
 function withRecords(d: Dataset, date: DateKey, records: RecordsByDate): Dataset {
   return {
+    ...d,
     records,
     trackingSince: d.trackingSince && d.trackingSince <= date ? d.trackingSince : date,
   };
@@ -109,6 +114,19 @@ export const useTrackingStore = create<TrackingState>()(
         return true;
       },
 
+      setExtra: (date, id, done, now = Date.now()) =>
+        set((s) =>
+          updateActive(s, (d) => {
+            const day = { ...d.extras[date] };
+            if (done) day[id] = now;
+            else delete day[id];
+            const extras = { ...d.extras };
+            if (Object.keys(day).length) extras[date] = day;
+            else delete extras[date];
+            return { ...d, extras, trackingSince: d.trackingSince && d.trackingSince <= date ? d.trackingSince : date };
+          }),
+        ),
+
       ensureStarted: (today) =>
         set((s) =>
           s.datasets.real.trackingSince
@@ -130,7 +148,7 @@ export const useTrackingStore = create<TrackingState>()(
     {
       name: STORAGE_KEYS.tracking,
       storage: zustandStorage,
-      version: 2,
+      version: 3,
       partialize: ({ datasets, active }) => ({ datasets, active }),
       migrate: migrateTrackingState,
     },
@@ -138,19 +156,23 @@ export const useTrackingStore = create<TrackingState>()(
 );
 
 /**
- * v1 stored `{ records, trackingSince }` at the top level. v2 nests them under
- * `datasets.real` so demo data can live alongside without touching real records.
+ * v1 stored `{ records, trackingSince }` at the top level; v2 nested them under
+ * `datasets.real` (so demo data can live alongside); v3 adds `extras` (sunnah/Witr).
  */
 export function migrateTrackingState(persisted: unknown, version: number): PersistedTracking {
+  let state: PersistedTracking;
   if (version < 2) {
     const v1 = (persisted ?? {}) as Partial<Dataset>;
-    return {
-      datasets: {
-        real: { records: v1.records ?? {}, trackingSince: v1.trackingSince ?? null },
-        demo: null,
-      },
+    state = {
+      datasets: { real: { records: v1.records ?? {}, trackingSince: v1.trackingSince ?? null, extras: {} }, demo: null },
       active: 'real',
     };
+  } else {
+    state = persisted as PersistedTracking;
   }
-  return persisted as PersistedTracking;
+  const withExtras = (d: Dataset | null): Dataset | null => (d ? { ...d, extras: d.extras ?? {} } : d);
+  return {
+    ...state,
+    datasets: { real: withExtras(state.datasets.real) ?? EMPTY, demo: withExtras(state.datasets.demo) },
+  };
 }

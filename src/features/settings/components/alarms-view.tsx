@@ -66,7 +66,7 @@ export function AlarmsView() {
                   <View className="size-[30px] items-center justify-center rounded-full bg-status-late">
                     <Icon name="late" size={15} color="#FFFFFF" strokeWidth={2.4} />
                   </View>
-                  <Text variant="micro" tone="none" style={{ color: '#B45309' }} className="mt-1">{remWall}</Text>
+                  <Text variant="micro" tone="none" style={{ color: c.warning }} className="mt-1">{remWall}</Text>
                 </View>
               ) : null}
               <View className="absolute -end-1.5 top-[7px] size-4 rounded-full border-[3px] border-ink bg-paper dark:border-ink-dark dark:bg-paper-dark" />
@@ -89,7 +89,7 @@ export function AlarmsView() {
           <Icon name="music" size={20} color={c.ink} />
           <Text variant="label" className="flex-1">{t('sounds.title')}</Text>
           <Text variant="small" tone="muted">{t(`sounds.${alarms.sound}`)}</Text>
-          <Icon name="chevronRight" size={16} color="#B4B4AF" strokeWidth={2} flip={isRTL} />
+          <Icon name="chevronRight" size={16} color={c.chevron} strokeWidth={2} flip={isRTL} />
         </Pressable>
 
         <View className="gap-2.5">
@@ -135,7 +135,7 @@ export function AlarmsView() {
           <Button variant="secondary" icon="list" label={t('settings.scheduledShort')} onPress={() => router.push('/scheduled-alarms')} className="flex-1" />
         </View>
         {testAlarm.state === 'sent' ? (
-          <Text variant="caption" weight="semibold" tone="none" style={{ color: '#15803D' }} align="center">
+          <Text variant="caption" weight="semibold" tone="none" style={{ color: c.success }} align="center">
             {t('settings.testAlarmSent')}
           </Text>
         ) : testAlarm.state === 'denied' ? (

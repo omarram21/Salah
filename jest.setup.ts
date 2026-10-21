@@ -9,6 +9,11 @@ jest.mock('expo-location', () => ({
   getLastKnownPositionAsync: jest.fn(async () => null),
   getCurrentPositionAsync: jest.fn(),
   reverseGeocodeAsync: jest.fn(async () => []),
+  // A phone pointing 100° (true north known). Tests can override per case.
+  watchHeadingAsync: jest.fn(async (cb: (h: { trueHeading: number; magHeading: number; accuracy: number }) => void) => {
+    cb({ trueHeading: 100, magHeading: 96, accuracy: 3 });
+    return { remove: jest.fn() };
+  }),
 }));
 
 jest.mock('expo-notifications', () => ({

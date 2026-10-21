@@ -30,6 +30,18 @@ Design "E": minimal, icon-led, Space Grotesk, one orange accent (light + dark).
   current and best streak, and a short insight (strongest / weakest prayer).
 - **Settings** — grouped list; Alarms page previews when the next prayer and its reminder will ring,
   with a test alarm and the scheduled-alarms list. Language (Arabic RTL), theme, demo data.
+- **Qibla** — compass screen (from Today's header or Settings): the dial turns with the phone,
+  the Kaaba marker shows where to face, with "Turn right 23°" / "Facing the Qibla", bearing and
+  distance to Makkah. Uses true north with location permission, magnetic north without.
+- **Adjust times** — per-prayer ±30 min, Isha ends at next Fajr or Islamic midnight, Hijri date ±2
+  days. Applied locally on top of AlAdhan's times (offline, instant; alarms/tracking/stats follow).
+- **Sunnah & Witr** — small done/not-done chips under each prayer (2 before Fajr, 4 before / 2 after
+  Dhuhr, 2 after Maghrib, 2 after Isha, Witr; optional Duha row). Also in the day editor, a
+  "Sunnah 4/5 · Witr ✓" line in History, and a Stats card with per-item counts and a Witr streak.
+  Witr after midnight counts for the previous night. Choose which to track in Settings → Sunnah & Witr.
+  They never affect the on-time streak.
+- **Notification buttons** — "Prayed" / "In mosque" on alarms and reminders mark the prayer without
+  opening the app (never overwriting an existing mark).
 - **Offline** — prayer times are fetched a month at a time from AlAdhan and cached; next month is
   prefetched during the last week of the current one.
 
@@ -46,6 +58,7 @@ src/
     notifications/ pure schedule builder + expo-notifications sync
     history/      month grid (pure) + calendar screen
     stats/        counts, ranges, streaks (pure) + Stats UI
+    qibla/        bearing / distance / turn guidance (pure) + compass screen
     settings/     settings store (index.ts) and settings UI (ui.ts)
   shared/
     api/aladhan/  HTTP client + response types (no app logic)

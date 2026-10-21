@@ -20,6 +20,7 @@ import { getTiming } from '../logic/status';
 import { selectRecords, useTrackingStore } from '../store/tracking-store';
 import { StatusDot } from './status-dot';
 import { StatusQuickPicker } from './status-quick-picker';
+import { SunnahChips } from './sunnah-chips';
 
 type Props = {
   date: DateKey;
@@ -110,6 +111,9 @@ export function DayStepper({ date, index, now, today, onDone }: Props) {
               go(idx + 1);
             }}
           />
+        </View>
+        <View className="mt-4 self-stretch items-center">
+          <SunnahChips date={date} prayer={prayer} withDuha={prayer === 'dhuhr'} size="large" disabled={upcoming} />
         </View>
         <Text variant="tiny" tone="faint" align="center" className="mt-3">
           {upcoming ? t('tracking.notStartedYet') : t('tracking.pickToAdvance')}

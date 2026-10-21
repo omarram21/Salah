@@ -5,10 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, View } from 'react-native';
 
 import { getPrayerWindow, PRAYERS, type DayIndex } from '@/features/prayer-times';
+import { useSettingsStore } from '@/features/settings';
 import {
+  countExtras,
   countsAsOnTime,
   DemoBanner,
   getTiming,
+  selectExtras,
   selectRecords,
   selectTrackingSince,
   StatusCircle,
@@ -203,6 +206,33 @@ function SelectedDay({ date, record, today, index, now }: { date: DateKey; recor
           );
         })}
       </View>
+      <ExtrasSummary date={date} today={today} index={index} now={now} />
+    </View>
+  );
+}
+
+/** "Sunnah 4/5 · Witr ✓" for the selected day (only what's due so far). */
+function ExtrasSummary({ date, today, index, now }: { date: DateKey; today: DateKey; index: DayIndex; now: number }) {
+  const { t } = useTranslation();
+  const { c } = useThemeColors();
+  const enabled = useSettingsStore((s) => s.sunnahEnabled);
+  const items = useSettingsStore((s) => s.sunnahItems);
+  const extras = useTrackingStore(selectExtras);
+  if (!enabled) return null;
+  const started = (def: { prayer: (typeof PRAYERS)[number] | null }) =>
+    date < today || (getPrayerWindow(index, date, def.prayer ?? 'fajr')?.start ?? Infinity) <= now;
+  const sunnah = countExtras(extras, [date], { ...items, witr: false }, (_, def) => started(def));
+  const witrDue = items.witr && started({ prayer: 'isha' });
+  const witr = extras[date]?.witr;
+  if (!sunnah.due && !witrDue) return null;
+  return (
+    <View className="flex-row items-center gap-2 border-t border-[#E4E4E0] pt-2.5 dark:border-line-dark">
+      <Icon name="crescent" size={14} color={c.muted} strokeWidth={2} />
+      <Text variant="tiny" tone="muted" tabular className="flex-1">
+        {[sunnah.due ? t('sunnah.summary', { done: sunnah.done, due: sunnah.due }) : null, witrDue ? (witr ? t('sunnah.witrDone') : t('sunnah.witrMissing')) : null]
+          .filter(Boolean)
+          .join(' · ')}
+      </Text>
     </View>
   );
 }
@@ -229,7 +259,7 @@ function MonthArrow({ label, icon, disabled, onPress, flip }: { label: string; i
       disabled={disabled}
       onPress={onPress}
       className="size-11 items-center justify-center rounded-full bg-chip dark:bg-chip-dark">
-      <Icon name={icon} size={18} color={disabled ? '#C9C9C4' : c.ink} strokeWidth={2} flip={flip} />
+      <Icon name={icon} size={18} color={disabled ? c.disabled : c.ink} strokeWidth={2} flip={flip} />
     </Pressable>
   );
 }

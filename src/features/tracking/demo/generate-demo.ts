@@ -1,6 +1,7 @@
 import { PRAYERS, type PrayerName } from '@/features/prayer-times';
 import { addDays, parseDateKey, weekdayOf, type DateKey } from '@/shared/lib/date-key';
 
+import { SUNNAH_IDS, type ExtrasByDate } from '../logic/sunnah';
 import type { Dataset, DayRecord, PrayerStatus, RecordsByDate } from '../logic/types';
 import { pickWeighted, seededRandom } from './random';
 
@@ -83,5 +84,15 @@ export function generateDemoDataset(
     if (Object.keys(day).length > 0) records[date] = day;
   }
 
-  return { records, trackingSince: addDays(today, -days) };
+  // Sunnah habits: Fajr's sunnah and Witr most days, Dhuhr's before-sunnah less often, Duha rarely.
+  const likelihood: Record<(typeof SUNNAH_IDS)[number], number> = {
+    fajrBefore: 0.8, duha: 0.15, dhuhrBefore: 0.45, dhuhrAfter: 0.6, maghribAfter: 0.75, ishaAfter: 0.65, witr: 0.7,
+  };
+  const extras: ExtrasByDate = {};
+  for (const date of Object.keys(records)) {
+    const day: ExtrasByDate[string] = {};
+    for (const id of SUNNAH_IDS) if (rand() < likelihood[id]) day[id] = noonUtc(date);
+    if (Object.keys(day).length) extras[date] = day;
+  }
+  return { records, trackingSince: addDays(today, -days), extras };
 }

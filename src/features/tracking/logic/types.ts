@@ -1,6 +1,8 @@
 import type { PrayerName } from '@/features/prayer-times';
 import type { DateKey } from '@/shared/lib/date-key';
 
+import type { ExtrasByDate } from './sunnah';
+
 /** Best → worst. Order is used by pickers, legends and stats. */
 export const STATUSES = ['mosque', 'onTime', 'late', 'missed'] as const;
 /** "Not marked" is the absence of a record, never a stored status. */
@@ -27,4 +29,6 @@ export type Dataset = {
   records: RecordsByDate;
   /** First day tracked; history and stats start here. */
   trackingSince: DateKey | null;
+  /** Sunnah / Witr / Duha marked done, by date. */
+  extras: ExtrasByDate;
 };

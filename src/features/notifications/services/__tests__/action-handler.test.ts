@@ -23,7 +23,7 @@ function response(action: string, data: Record<string, unknown> = {}) {
 const real = () => useTrackingStore.getState().datasets.real.records;
 
 beforeEach(() => {
-  useTrackingStore.setState({ datasets: { real: { records: {}, trackingSince: '2026-10-28' }, demo: null }, active: 'real' });
+  useTrackingStore.setState({ datasets: { real: { records: {}, trackingSince: '2026-10-28', extras: {} }, demo: null }, active: 'real' });
   jest.clearAllMocks();
 });
 afterEach(() => jest.restoreAllMocks());
