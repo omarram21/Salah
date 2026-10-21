@@ -72,6 +72,7 @@ export function SettingsView() {
       <SettingsGroup title={t('settings.sectionAppearance')}>
         <SettingsRow icon="globe" label={t('settings.language')} value={s.language === 'ar' ? 'العربية' : 'English'} href="/language" />
         <SettingsRow icon="theme" label={t('settings.theme')} value={themeValue} href="/theme" />
+        <SettingsRow icon="stats" label={t('widgets.title')} href="/widgets" />
       </SettingsGroup>
 
       <SettingsGroup title={t('settings.sectionMore')}>

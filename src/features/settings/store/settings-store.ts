@@ -88,6 +88,8 @@ export type SettingsState = TimeAdjustSettings & SunnahSettings & {
   ramadan: RamadanPrefs;
   /** Try the Friday / Ramadan screens on any day. Not saved: off again after a restart. */
   preview: { friday: boolean; ramadan: boolean };
+  /** Lock Screen / Dynamic Island countdown (iOS Live Activity). */
+  liveActivity: boolean;
   language: Language;
   theme: ThemePreference;
   calculationMethod: CalculationMethodSetting;
@@ -111,6 +113,7 @@ type SettingsActions = {
   updateFriday: (patch: Partial<FridayPrefs>) => void;
   updateRamadan: (patch: Partial<RamadanPrefs>) => void;
   setPreview: (patch: Partial<SettingsState['preview']>) => void;
+  setLiveActivity: (on: boolean) => void;
 };
 
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
@@ -127,6 +130,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       friday: DEFAULT_FRIDAY,
       ramadan: DEFAULT_RAMADAN,
       preview: { friday: false, ramadan: false },
+      liveActivity: false,
       setLanguage: (language) => set({ language }),
       setTheme: (theme) => set({ theme }),
       setCalculationMethod: (calculationMethod) => set({ calculationMethod }),
@@ -144,12 +148,13 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       updateFriday: (patch) => set((s) => ({ friday: { ...s.friday, ...patch } })),
       updateRamadan: (patch) => set((s) => ({ ramadan: { ...s.ramadan, ...patch } })),
       setPreview: (patch) => set((s) => ({ preview: { ...s.preview, ...patch } })),
+      setLiveActivity: (liveActivity) => set({ liveActivity }),
     }),
     {
       name: STORAGE_KEYS.settings,
       storage: zustandStorage,
       version: 1,
-      partialize: ({ language, theme, calculationMethod, asrMethod, alarms, timeOffsets, ishaEnd, hijriOffset, sunnahEnabled, sunnahItems, friday, ramadan }) => ({
+      partialize: ({ language, theme, calculationMethod, asrMethod, alarms, timeOffsets, ishaEnd, hijriOffset, sunnahEnabled, sunnahItems, friday, ramadan, liveActivity }) => ({
         language,
         theme,
         calculationMethod,
@@ -162,6 +167,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         sunnahItems,
         friday,
         ramadan,
+        liveActivity,
       }),
       // Fill in fields added after a user's data was first saved.
       merge: (persisted, current) => {

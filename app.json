@@ -2,14 +2,14 @@
   "expo": {
     "name": "Hayya",
     "slug": "salah",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "salah",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.salah.prayertracker",
-      "buildNumber": "2"
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.salah.prayertracker",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
@@ -67,7 +67,118 @@
         }
       ],
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "HayyaNext",
+              "displayName": "Next prayer",
+              "description": "Countdown to the next prayer",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "accessoryCircular",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ]
+              }
+            },
+            {
+              "name": "HayyaToday",
+              "displayName": "Today",
+              "description": "Today’s prayers and what you’ve marked",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "systemLarge",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ]
+              }
+            },
+            {
+              "name": "HayyaTimes",
+              "displayName": "Prayer times",
+              "description": "All five times for today",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall"
+                ]
+              }
+            },
+            {
+              "name": "HayyaMark",
+              "displayName": "Mark prayer",
+              "description": "Mark the current prayer with one tap",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium"
+                ]
+              }
+            },
+            {
+              "name": "HayyaStreak",
+              "displayName": "Streak & week",
+              "description": "Your streak and this week",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryCircular"
+                ]
+              }
+            },
+            {
+              "name": "HayyaArabic",
+              "displayName": "حيّ",
+              "description": "Next prayer in Arabic",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "accessoryCircular"
+                ]
+              }
+            },
+            {
+              "name": "HayyaSeason",
+              "displayName": "Friday & Ramadan",
+              "description": "Jumu’ah and Al-Kahf, or Suhoor and Iftar in Ramadan",
+              "ios": {
+                "supportedFamilies": [
+                  "systemMedium",
+                  "accessoryCircular",
+                  "accessoryRectangular"
+                ]
+              }
+            },
+            {
+              "name": "HayyaMonth",
+              "displayName": "Month",
+              "description": "This month’s calendar",
+              "ios": {
+                "supportedFamilies": [
+                  "systemLarge"
+                ]
+              }
+            },
+            {
+              "name": "HayyaQibla",
+              "displayName": "Qibla",
+              "description": "Qibla direction from your city",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "accessoryCircular"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

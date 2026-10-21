@@ -417,7 +417,16 @@ describe('app', () => {
     expect(useSettingsStore.getState().ramadan.enabled).toBe(false);
   });
 
-  it.each(['/', '/history', '/stats', '/settings', '/alarms', '/alarm-sound', '/qibla', '/adjust-times', '/sunnah', '/friday-ramadan', '/day/2026-10-30', '/location'])(
+  it('Widgets page: explains how to add them; off in Expo Go / tests', async () => {
+    seed();
+    renderRouter('./src/app', { initialUrl: '/settings' });
+    fireEvent.press(await screen.findByLabelText('Widgets'));
+    expect(await screen.findByText('Widgets need the installed Hayya app. They don’t work inside Expo Go.')).toBeTruthy();
+    expect(screen.getByText('Mark prayer')).toBeTruthy();
+    expect(screen.getByLabelText('Live Activity').props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it.each(['/', '/history', '/stats', '/settings', '/alarms', '/alarm-sound', '/qibla', '/adjust-times', '/sunnah', '/friday-ramadan', '/widgets', '/day/2026-10-30', '/location'])(
     'Dark mode: %s renders',
     async (url) => {
       seed();

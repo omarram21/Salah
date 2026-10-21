@@ -48,6 +48,13 @@ Design "E": minimal, icon-led, Space Grotesk, one orange accent (light + dark).
   before Fajr. History lets you edit fasts; Stats counts fasting days and Al-Kahf Fridays. Eid card on
   1 Shawwal and 10 Dhul-Hijjah. Settings → Friday & Ramadan has "Preview" switches (not saved) to try it
   on any day.
+- **Widgets (iOS, `expo-widgets`)** — Next prayer, Today, Prayer times, Mark prayer (tap buttons, iOS 17+),
+  Streak & week, حيّ (Arabic), Friday & Ramadan, Month, Qibla — Home Screen, Lock Screen and StandBy sizes,
+  plus a Live Activity countdown (Lock Screen + Dynamic Island, Settings → Widgets). The app writes ~36 h
+  timelines (an entry at every prayer start, sunrise and midnight) and countdowns tick on their own.
+  Taps on "Mark prayer" are saved in the widget and imported when the app opens. Layouts live in
+  `features/widgets/native/layouts.tsx` (each `'widget'` function is serialized — no outside references);
+  `__tests__/layouts.test.ts` runs them in a fake widget runtime. Not in Expo Go (needs the built app).
 - **Notification buttons** — "Prayed" / "In mosque" on alarms and reminders mark the prayer without
   opening the app (never overwriting an existing mark).
 - **Offline** — prayer times are fetched a month at a time from AlAdhan and cached; next month is

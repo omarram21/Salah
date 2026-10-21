@@ -13,6 +13,7 @@ import { useNotificationSync } from '@/features/notifications';
 import { usePrayerTimesStore, usePrayerTimesSync } from '@/features/prayer-times';
 import { useAppTheme, useSettingsStore } from '@/features/settings';
 import { useTrackingStore } from '@/features/tracking';
+import { useWidgetSync } from '@/features/widgets';
 // Also initialises i18next (side effect of the module).
 import { directionOf, DirectionProvider } from '@/shared/i18n';
 import { dateKeyAt, deviceUtcOffsetMin } from '@/shared/lib/date-key';
@@ -49,6 +50,7 @@ function App() {
 
   usePrayerTimesSync();
   useNotificationSync();
+  useWidgetSync();
 
   useEffect(() => {
     if (i18n.language !== language) void i18n.changeLanguage(language);
