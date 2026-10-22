@@ -140,6 +140,14 @@ describe('widget layouts', () => {
     expect(load('HayyaQibla')({ rtl: false, bearing: 136.4, city: 'Cairo', t: labels }, { widgetFamily: family, colorScheme: 'dark', date: new Date() })).toBeTruthy();
   });
 
+  // iOS asks for a placeholder with no props; a throw here becomes "Please adopt containerBackground API".
+  it.each(['HayyaNext', 'HayyaToday', 'HayyaTimes', 'HayyaMark', 'HayyaStreak', 'HayyaArabic', 'HayyaSeason', 'HayyaMonth', 'HayyaQibla'])('%s · empty placeholder props', (name) => {
+    for (const widgetFamily of ['systemSmall', 'accessoryCircular']) {
+      const tree = load(name)({}, { widgetFamily, colorScheme: 'light', date: new Date() }) as Node;
+      expect(JSON.stringify(tree.props.modifiers)).toContain('containerBackground');
+    }
+  });
+
   it('Mark: buttons return a tap for the current prayer, and the app can read it back', () => {
     const inp = moments['during Asr'];
     const props = dayProps(inp, inp.now);

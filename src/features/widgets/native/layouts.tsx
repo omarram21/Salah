@@ -46,6 +46,16 @@ import type { LiveProps } from '../logic/live-activity';
 // ───────────────────────── Next prayer (WS1 · WS7 · LS1) ─────────────────────────
 const NextPrayer = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -65,7 +75,7 @@ const NextPrayer = (p: DayProps, env: WidgetEnvironment) => {
   const range = { lower: env.date, upper: new Date(next.at) };
 
   if (fam === 'accessoryInline') {
-    return <Text>{`${next.name} ${next.time}`}</Text>;
+    return <Text modifiers={[containerBackground('#00000000', 'widget')]}>{`${next.name} ${next.time}`}</Text>;
   }
   if (fam === 'accessoryCircular') {
     return (
@@ -127,6 +137,16 @@ const NextPrayer = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── Today (WS2 · WM1 · WL1 · LS2) ─────────────────────────
 const Today = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -268,6 +288,16 @@ const Today = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── All five times (WS3) ─────────────────────────
 const Times = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -303,6 +333,16 @@ const Times = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── Mark from the widget (WS4 · WM2) ─────────────────────────
 const Mark = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -416,6 +456,16 @@ const Mark = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── Streak & week (WS5 · WM3 · LS4 flame) ─────────────────────────
 const Streak = (p: WeekProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -485,6 +535,16 @@ const Streak = (p: WeekProps, env: WidgetEnvironment) => {
 // ───────────────────────── Arabic (WS6 · LS4 logo) ─────────────────────────
 const Arabic = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const AR: Record<string, string> = { fajr: 'الفجر', dhuhr: 'الظهر', asr: 'العصر', maghrib: 'المغرب', isha: 'العشاء' };
   if (env.widgetFamily === 'accessoryCircular') {
     return (
@@ -521,6 +581,16 @@ const Arabic = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── Friday & Ramadan (WM4 · WM5 · LS3) ─────────────────────────
 const Season = (p: DayProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const fam = env.widgetFamily;
   const s = p.season;
@@ -639,6 +709,16 @@ const Season = (p: DayProps, env: WidgetEnvironment) => {
 // ───────────────────────── Month (WL2) ─────────────────────────
 const Month = (p: MonthProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const C = {
     bg: dark ? '#161618' : '#FFFFFF',
@@ -709,6 +789,16 @@ const Month = (p: MonthProps, env: WidgetEnvironment) => {
 // ───────────────────────── Qibla (LS4 · small) ─────────────────────────
 const Qibla = (p: QiblaProps, env: WidgetEnvironment) => {
   'widget';
+  // Placeholders (widget gallery, before the app's first sync) arrive with empty props.
+  if (!p?.t) {
+    const glance = env.widgetFamily.startsWith('accessory');
+    return (
+      <VStack spacing={4} modifiers={[containerBackground(glance ? '#00000000' : env.colorScheme === 'dark' ? '#161618' : '#FFFFFF', 'widget'), widgetURL('salah://')]}>
+        <Image systemName="moon.stars" size={glance ? 14 : 22} color={glance ? undefined : env.colorScheme === 'dark' ? '#FB923C' : '#C2410C'} />
+        <Text modifiers={[font({ size: glance ? 12 : 14, weight: 'semibold' })]}>Hayya</Text>
+      </VStack>
+    );
+  }
   const dark = env.colorScheme === 'dark';
   const deg = `${Math.round(p.bearing)}°`;
   if (env.widgetFamily === 'accessoryCircular') {
