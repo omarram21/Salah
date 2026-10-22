@@ -1,0 +1,21 @@
+diff --git a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift b/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
+index b0f76a5..d65e819 100644
+--- a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
++++ b/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
+@@ -1,6 +1,7 @@
+ import ExpoModulesCore
+ import SwiftUI
+ import ExpoUI
++import WidgetKit
+ 
+ public final class RedBoxViewProps: UIBaseViewProps {
+   @Field var message: String
+@@ -75,7 +76,7 @@ public struct FullSizeZStack<Content: View>: View {
+ 
+   public var body: some View {
+     if #available(iOS 17.0, *), kind == .widget {
+-      ZStack { content }.containerRelativeFrame([.horizontal, .vertical])
++      ZStack { content }.containerRelativeFrame([.horizontal, .vertical]).containerBackground(Color.red, for: .widget)
+     } else {
+       ZStack { content }.frame(maxWidth: .infinity)
+     }

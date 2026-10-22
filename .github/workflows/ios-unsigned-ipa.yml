@@ -17,6 +17,7 @@ on:
       - 'locales/**'
       - 'package.json'
       - 'package-lock.json'
+      - 'patches/**'
       - '.github/workflows/ios-unsigned-ipa.yml'
 
 jobs:
