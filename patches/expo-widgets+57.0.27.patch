@@ -1,3 +1,49 @@
+diff --git a/node_modules/expo-widgets/ios/Widgets/DynamicView.swift b/node_modules/expo-widgets/ios/Widgets/DynamicView.swift
+index 17f6609..42818e8 100644
+--- a/node_modules/expo-widgets/ios/Widgets/DynamicView.swift
++++ b/node_modules/expo-widgets/ios/Widgets/DynamicView.swift
+@@ -1,6 +1,7 @@
+ import SwiftUI
+ import ExpoModulesCore
+ import ExpoUI
++import WidgetKit
+ 
+ // TODO(@jakex7): Hack to satisfy ExpoSwiftUI.AnyChild with random UUID value
+ class NodeIdentityWrapper {
+@@ -106,7 +107,6 @@ public struct WidgetsDynamicView: View, ExpoSwiftUI.AnyChild {
+       render(FragmentView.self, FragmentProps.self, updateProps: updateChildren)
+     case "LinkView":
+       render(LinkView.self, LinkViewProps.self, updateProps: updateChildren)
+-#if DEBUG
+     case "RedBoxView":
+       render(RedBoxView.self, RedBoxViewProps.self) { redBoxProps in
+         redBoxProps.source = name
+@@ -117,10 +117,6 @@ public struct WidgetsDynamicView: View, ExpoSwiftUI.AnyChild {
+         Color.red.opacity(0.5)
+         Text("Unable to get the view for: \(node["type"] as? String ?? "undefined")")
+       }
+-#else
+-    default:
+-      EmptyView()
+-#endif
+     }
+   }
+ 
+@@ -140,7 +136,13 @@ public struct WidgetsDynamicView: View, ExpoSwiftUI.AnyChild {
+         }
+         return AnyView(EmptyView())
+       } catch {
+-        return AnyView(EmptyView())
++        let message = Text("\(String(describing: P.self)): \(error.localizedDescription)")
++          .font(.system(size: 10).monospaced())
++          .foregroundStyle(.white)
++        if #available(iOS 17.0, *), kind == .widget {
++          return AnyView(message.containerBackground(Color.red, for: .widget))
++        }
++        return AnyView(message.background(Color.red))
+       }
+     }()
+   }
 diff --git a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift b/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
 index b0f76a5..d65e819 100644
 --- a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
