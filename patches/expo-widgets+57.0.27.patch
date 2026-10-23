@@ -44,6 +44,19 @@ index 17f6609..42818e8 100644
        }
      }()
    }
+diff --git a/node_modules/expo-widgets/ios/Widgets/EntryView.swift b/node_modules/expo-widgets/ios/Widgets/EntryView.swift
+index 946b66d..ad4a328 100644
+--- a/node_modules/expo-widgets/ios/Widgets/EntryView.swift
++++ b/node_modules/expo-widgets/ios/Widgets/EntryView.swift
+@@ -30,7 +30,7 @@ public struct WidgetsEntryView: View {
+       let node = evaluateLayout(layout: layout, props: entry.props ?? [:], environment: widgetEnvironment)
+       WidgetsDynamicView(name: entry.name, kind: .widget, node: node, entryIndex: entry.entryIndex, environmentString: widgetEnvironmentString)
+     } else {
+-      WidgetsDynamicView(name: entry.name, kind: .widget, node: createRedBox(message: "No layout found for \(WidgetsStorage.appGroupIdentifier ?? "")::\(entry.name)"), entryIndex: entry.entryIndex, environmentString: widgetEnvironmentString)
++      WidgetsDynamicView(name: entry.name, kind: .widget, node: createRedBox(message: "No layout found for \(WidgetsStorage.appGroupIdentifier ?? "")::\(entry.name) (profile groups: \(WidgetsStorage.provisionedAppGroups.joined(separator: ", ")))"), entryIndex: entry.entryIndex, environmentString: widgetEnvironmentString)
+     }
+   }
+ }
 diff --git a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift b/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
 index b0f76a5..d65e819 100644
 --- a/node_modules/expo-widgets/ios/Widgets/RedBoxView.swift
@@ -65,3 +78,40 @@ index b0f76a5..d65e819 100644
      } else {
        ZStack { content }.frame(maxWidth: .infinity)
      }
+diff --git a/node_modules/expo-widgets/ios/WidgetsStorage.swift b/node_modules/expo-widgets/ios/WidgetsStorage.swift
+index 86f9d6c..716db1c 100644
+--- a/node_modules/expo-widgets/ios/WidgetsStorage.swift
++++ b/node_modules/expo-widgets/ios/WidgetsStorage.swift
+@@ -1,5 +1,31 @@
+ public enum WidgetsStorage {
+-  public static var appGroupIdentifier: String? = Bundle.main.object(forInfoDictionaryKey: "ExpoWidgetsAppGroupIdentifier") as? String
++  public static var appGroupIdentifier: String? = resolveAppGroupIdentifier()
++
++  /// App Groups granted by this bundle's provisioning profile.
++  static let provisionedAppGroups: [String] = {
++    guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
++          let raw = try? String(contentsOf: url, encoding: .isoLatin1),
++          let start = raw.range(of: "<?xml"),
++          let end = raw.range(of: "</plist>", range: start.upperBound..<raw.endIndex),
++          let data = String(raw[start.lowerBound..<end.upperBound]).data(using: .isoLatin1),
++          let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
++          let entitlements = plist["Entitlements"] as? [String: Any] else {
++      return []
++    }
++    return entitlements["com.apple.security.application-groups"] as? [String] ?? []
++  }()
++
++  /// Sideloading tools re-sign with their own team and rename the App Group (for example
++  /// `group.<id>.<TEAMID>`) without touching Info.plist, so the app and the extension would each
++  /// get a private, unshared store. Prefer the group the profile actually grants.
++  private static func resolveAppGroupIdentifier() -> String? {
++    let configured = Bundle.main.object(forInfoDictionaryKey: "ExpoWidgetsAppGroupIdentifier") as? String
++    let granted = (Bundle.main.object(forInfoDictionaryKey: "ALTAppGroups") as? [String] ?? []) + provisionedAppGroups
++    guard let configured, !granted.isEmpty, !granted.contains(configured) else {
++      return configured
++    }
++    return granted.first(where: { $0.hasPrefix(configured) }) ?? granted.first
++  }
+   static let defaults = UserDefaults(suiteName: appGroupIdentifier)
+ 
+   static func set(_ value: [String: Any], forKey key: String) {
