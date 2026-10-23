@@ -86,6 +86,19 @@
               }
             },
             {
+              "name": "HayyaPrevNext",
+              "displayName": "Previous & next",
+              "description": "The last prayer, the next one and the time left",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium",
+                  "accessoryRectangular",
+                  "accessoryInline"
+                ]
+              }
+            },
+            {
               "name": "HayyaToday",
               "displayName": "Today",
               "description": "Today’s prayers and what you’ve marked",
@@ -121,6 +134,17 @@
               }
             },
             {
+              "name": "HayyaEdit",
+              "displayName": "Edit prayers",
+              "description": "Change any of today’s prayers with a tap",
+              "ios": {
+                "supportedFamilies": [
+                  "systemMedium",
+                  "systemLarge"
+                ]
+              }
+            },
+            {
               "name": "HayyaStreak",
               "displayName": "Streak & week",
               "description": "Your streak and this week",
@@ -152,16 +176,6 @@
                   "systemMedium",
                   "accessoryCircular",
                   "accessoryRectangular"
-                ]
-              }
-            },
-            {
-              "name": "HayyaMonth",
-              "displayName": "Month",
-              "description": "This month’s calendar",
-              "ios": {
-                "supportedFamilies": [
-                  "systemLarge"
                 ]
               }
             },

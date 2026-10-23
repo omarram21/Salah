@@ -7,7 +7,7 @@ import { cairo, cairoIndex } from '@/features/prayer-times/model/__fixtures__/ca
 import { isFriday } from '@/features/occasions';
 
 import { liveProps } from '../logic/live-activity';
-import { collectTaps, dayProps, dayTimeline, monthProps, plistSafe, weekProps, type WidgetInput, type WidgetLabels, type WidgetTap } from '../logic/widget-data';
+import { collectEdits, collectTaps, dayProps, dayTimeline, plistSafe, weekProps, type WidgetInput, type WidgetLabels, type WidgetEdit, type WidgetTap } from '../logic/widget-data';
 
 type Node = { type: string; props: Record<string, unknown> };
 const mockCaptured: Record<string, string> = {};
@@ -26,8 +26,8 @@ jest.mock('@expo/ui/swift-ui', () => ({}), { virtual: true });
 jest.mock('@expo/ui/swift-ui/modifiers', () => ({}), { virtual: true });
 
 // What the widget runtime provides as globals (see expo-widgets/bundle/index.ts).
-const COMPONENTS = ['AccessoryWidgetBackground', 'Button', 'Circle', 'Gauge', 'HStack', 'Image', 'ProgressView', 'RoundedRectangle', 'Spacer', 'Text', 'VStack', 'ZStack'];
-const MODIFIERS = ['background', 'buttonStyle', 'containerBackground', 'font', 'foregroundStyle', 'frame', 'gaugeStyle', 'lineLimit', 'minimumScaleFactor', 'monospacedDigit', 'opacity', 'padding', 'progressViewStyle', 'rotationEffect', 'tint', 'widgetURL'];
+const COMPONENTS = ['AccessoryWidgetBackground', 'Button', 'Capsule', 'Circle', 'Gauge', 'HStack', 'Image', 'ProgressView', 'Rectangle', 'RoundedRectangle', 'Spacer', 'Text', 'VStack', 'ZStack'];
+const MODIFIERS = ['background', 'buttonStyle', 'clipShape', 'clipped', 'containerBackground', 'font', 'foregroundStyle', 'frame', 'gaugeStyle', 'lineLimit', 'minimumScaleFactor', 'monospacedDigit', 'offset', 'opacity', 'padding', 'progressViewStyle', 'rotationEffect', 'tint', 'widgetURL'];
 
 function load(name: string): (props: unknown, env: unknown) => unknown {
   const code = mockCaptured[name];
@@ -72,7 +72,6 @@ const input = (now: number, over: Partial<WidgetInput> = {}): WidgetInput => ({
     wallTime: (w) => w,
     dateLabel: (d) => d,
     weekdayShort: (d) => d.slice(8),
-    monthTitle: () => 'October',
   },
   t: labels,
   ...over,
@@ -83,6 +82,8 @@ const FAMILIES: Record<string, string[]> = {
   HayyaToday: ['systemSmall', 'systemMedium', 'systemLarge', 'accessoryCircular', 'accessoryRectangular'],
   HayyaTimes: ['systemSmall'],
   HayyaMark: ['systemSmall', 'systemMedium'],
+  HayyaEdit: ['systemMedium', 'systemLarge'],
+  HayyaPrevNext: ['systemSmall', 'systemMedium', 'accessoryRectangular', 'accessoryInline'],
   HayyaArabic: ['systemSmall', 'accessoryCircular'],
   HayyaSeason: ['systemMedium', 'accessoryCircular', 'accessoryRectangular'],
 };
@@ -128,22 +129,17 @@ describe('widget layouts', () => {
     expect(load('HayyaStreak')(stored(weekProps(inp, inp.now)), { widgetFamily: family, colorScheme: 'light', date: new Date() })).toBeTruthy();
   });
 
-  it('HayyaMonth · large, light and dark', () => {
-    const inp = moments['during Asr'];
-    for (const colorScheme of ['light', 'dark']) {
-      const tree = load('HayyaMonth')(stored(monthProps(inp, inp.now)), { widgetFamily: 'systemLarge', colorScheme, date: new Date() });
-      const days: string[] = [];
-      walk(tree, (n) => n.type === 'Text' && typeof n.props.children === 'string' && /^\d+$/.test(n.props.children) && days.push(n.props.children));
-      expect(days).toContain('31');
-    }
-  });
-
   it.each(['systemSmall', 'accessoryCircular'])('HayyaQibla · %s', (family) => {
-    expect(load('HayyaQibla')({ rtl: false, bearing: 136.4, city: 'Cairo', t: labels }, { widgetFamily: family, colorScheme: 'dark', date: new Date() })).toBeTruthy();
+    const props = { rtl: false, bearing: 136.4, city: 'Cairo', label: '136° from north (SE)', cardinals: ['N', 'E', 'S', 'W'], t: labels };
+    const rotations: unknown[] = [];
+    walk(load('HayyaQibla')(props, { widgetFamily: family, colorScheme: 'dark', date: new Date() }), (n) => {
+      for (const m of (n.props.modifiers as { modifier: string; args: unknown[] }[] | undefined) ?? []) if (m.modifier === 'rotationEffect') rotations.push(m.args[0]);
+    });
+    expect(rotations).toEqual([136.4]);
   });
 
   // iOS asks for a placeholder with no props; a throw here becomes "Please adopt containerBackground API".
-  it.each(['HayyaNext', 'HayyaToday', 'HayyaTimes', 'HayyaMark', 'HayyaStreak', 'HayyaArabic', 'HayyaSeason', 'HayyaMonth', 'HayyaQibla'])('%s · empty placeholder props', (name) => {
+  it.each(['HayyaNext', 'HayyaToday', 'HayyaTimes', 'HayyaMark', 'HayyaStreak', 'HayyaArabic', 'HayyaSeason', 'HayyaQibla', 'HayyaEdit', 'HayyaPrevNext'])('%s · empty placeholder props', (name) => {
     for (const widgetFamily of ['systemSmall', 'accessoryCircular']) {
       const tree = load(name)({}, { widgetFamily, colorScheme: 'light', date: new Date() }) as Node;
       expect(JSON.stringify(tree.props.modifiers)).toContain('containerBackground');
@@ -165,6 +161,42 @@ describe('widget layouts', () => {
     walk(load('HayyaMark')(after, { widgetFamily: 'systemSmall', colorScheme: 'light', date: new Date(inp.now) }), (n) => n.type === 'Button' && left.push(n));
     expect(left).toHaveLength(0);
     expect(collectTaps([{ props: after }, { props: { ...props, tap: null } }])).toEqual([result.tap]);
+  });
+
+  it('Edit: a tap cycles the status, later taps win, and the app reads the newest back', () => {
+    const inp = moments['during Asr'];
+    const props = stored(dayProps(inp, inp.now));
+    const env = { widgetFamily: 'systemMedium', colorScheme: 'light', date: new Date(inp.now) };
+    const buttons = (tree: unknown) => {
+      const found: Node[] = [];
+      walk(tree, (n) => n.type === 'Button' && found.push(n));
+      return found;
+    };
+    // Fajr..Asr have started; Maghrib and Isha are upcoming and can't be changed yet.
+    expect(buttons(load('HayyaEdit')(props, env)).map((b) => b.props.target)).toEqual(['fajr', 'dhuhr', 'asr']);
+    const press = (p: typeof props, target: string) => {
+      const b = buttons(load('HayyaEdit')(p, env)).find((x) => x.props.target === target)!;
+      return { ...p, ...(b.props.onPress as () => { edits: Record<string, WidgetEdit> })() };
+    };
+    // Asr is unmarked → on time → mosque.
+    const once = press(props, 'asr');
+    expect(once.edits!['2026-10-31:asr']).toMatchObject({ status: 'onTime' });
+    const twice = press(once, 'asr');
+    expect(twice.edits!['2026-10-31:asr']).toMatchObject({ status: 'mosque' });
+    // Dhuhr was "mosque" → late; Fajr "late" → missed → cleared.
+    const dhuhr = press(twice, 'dhuhr');
+    expect(dhuhr.edits!['2026-10-31:dhuhr']!.status).toBe('late');
+    const fajr = press(press(dhuhr, 'fajr'), 'fajr');
+    expect(fajr.edits!['2026-10-31:fajr']!.status).toBe('');
+    const read = collectEdits([{ props: once }, { props: fajr }]);
+    expect(read.map((e) => [e.prayer, e.status])).toEqual(expect.arrayContaining([['asr', 'mosque'], ['dhuhr', 'late'], ['fajr', '']]));
+    expect(read).toHaveLength(3);
+
+    // Large: one button per status; tapping the selected one clears it.
+    const large = buttons(load('HayyaEdit')(props, { ...env, widgetFamily: 'systemLarge' }));
+    expect(large.map((b) => b.props.target)).toContain('dhuhr-mosque');
+    const cleared = (large.find((b) => b.props.target === 'dhuhr-mosque')!.props.onPress as () => { edits: Record<string, WidgetEdit> })();
+    expect(cleared.edits['2026-10-31:dhuhr']!.status).toBe('');
   });
 
   it('Live Activity: banner, compact, minimal and expanded regions', () => {
@@ -208,14 +240,14 @@ describe('widget data', () => {
   it('plistSafe: no nulls left (UserDefaults rejects NSNull), dates kept', () => {
     const inp = input(cairo('2026-10-31T15:30', 2));
     const day = plistSafe(dayTimeline(inp));
-    expect(JSON.stringify([day, plistSafe(weekProps(inp, inp.now)), plistSafe(monthProps(inp, inp.now))])).not.toContain('null');
+    expect(JSON.stringify([day, plistSafe(weekProps(inp, inp.now))])).not.toContain('null');
     expect(day[0]!.date).toBeInstanceOf(Date);
   });
 
-  it('month: offset follows the first weekday (Saturday start → 1 Oct is Thursday → 5 blanks)', () => {
-    const m = monthProps(input(cairo('2026-10-31T15:30', 2)), cairo('2026-10-31T15:30', 2));
-    expect(m.offset).toBe(5);
-    expect(m.days).toHaveLength(31);
-    expect(m.weekdays[0]).toBe('10'); // 10 Oct 2026 is a Saturday
+  it('previous prayer: the latest that has started, yesterday\'s Isha after midnight', () => {
+    expect(dayProps(input(cairo('2026-10-31T15:30', 2)), cairo('2026-10-31T15:30', 2)).prev?.key).toBe('asr');
+    const night = dayProps(input(cairo('2026-11-01T01:00', 2)), cairo('2026-11-01T01:00', 2));
+    expect(night.prev?.key).toBe('isha');
+    expect(night.prev!.at).toBe(cairoIndex.get('2026-10-31')!.times.isha.at);
   });
 });

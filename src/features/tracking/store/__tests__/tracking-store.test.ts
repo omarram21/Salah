@@ -25,6 +25,17 @@ describe('tracking store', () => {
     expect(records()['2026-10-18']).toBeUndefined();
   });
 
+  it('widget edits: set or clear unless the app changed it later', () => {
+    s().setStatus('2026-10-18', 'fajr', 'late', 5);
+    expect(s().setRealIfNewer('2026-10-18', 'fajr', 'onTime', 4)).toBe(false);
+    expect(records()['2026-10-18']?.fajr?.status).toBe('late');
+    expect(s().setRealIfNewer('2026-10-18', 'fajr', 'mosque', 6)).toBe(true);
+    expect(records()['2026-10-18']?.fajr).toEqual({ status: 'mosque', updatedAt: 6 });
+    expect(s().setRealIfNewer('2026-10-18', 'fajr', null, 7)).toBe(true);
+    expect(records()['2026-10-18']).toBeUndefined();
+    expect(s().setRealIfNewer('2026-10-18', 'dhuhr', null, 8)).toBe(false);
+  });
+
   it('edits past days and moves trackingSince back', () => {
     s().ensureStarted('2026-10-18');
     s().setStatus('2026-10-01', 'isha', 'missed');

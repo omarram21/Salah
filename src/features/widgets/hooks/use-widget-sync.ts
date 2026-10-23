@@ -6,7 +6,7 @@ import { AppState } from 'react-native';
 import { useLocationLabel, useLocationStore } from '@/features/location';
 import { prayerNameKey, useOccasions } from '@/features/occasions';
 import { locationToday, usePrayerDays, usePrayerParams } from '@/features/prayer-times';
-import { qiblaBearing } from '@/features/qibla';
+import { compassPoint, qiblaBearing } from '@/features/qibla';
 import { useSettingsStore } from '@/features/settings';
 import { useTrackingStore } from '@/features/tracking';
 import { useDateFormat } from '@/shared/i18n';
@@ -17,11 +17,11 @@ import { useNow } from '@/shared/lib/use-now';
 import { liveProps } from '../logic/live-activity';
 import {
   changePoints,
+  collectEdits,
   collectTaps,
   dailyTimeline,
   dayProps,
   dayTimeline,
-  monthProps,
   plistSafe,
   weekProps,
   type WidgetInput,
@@ -41,6 +41,7 @@ export function useWidgetSync() {
   const { index } = usePrayerDays(usePrayerParams());
   const real = useTrackingStore((s) => s.datasets.real);
   const markRealIfUnmarked = useTrackingStore((s) => s.markRealIfUnmarked);
+  const setRealIfNewer = useTrackingStore((s) => s.setRealIfNewer);
   const location = useLocationStore((s) => s.location);
   const city = (useLocationLabel(location) ?? '').split(/[,،]/)[0]!.trim();
   const liveOn = useSettingsStore((s) => s.liveActivity);
@@ -70,6 +71,9 @@ export function useWidgetSync() {
         // 1. Taps on the Mark widget (saved in its timeline) → real records, never overwriting.
         const taps = collectTaps(await native.widgets.mark.getTimeline());
         for (const tap of taps) markRealIfUnmarked(tap.date, tap.prayer, tap.status, tap.at);
+        // …and changes made on the "Edit prayers" widget, unless the app changed that prayer later.
+        const edits = collectEdits(await native.widgets.edit.getTimeline());
+        for (const e of edits) setRealIfNewer(e.date, e.prayer, e.status || null, e.at);
 
         // 2. Fresh timelines.
         const labels: WidgetLabels = {
@@ -100,6 +104,9 @@ export function useWidgetSync() {
           kahfDone: t('widgets.kahfDone'),
           noTimes: t('widgets.noTimes'),
           appName: t('welcome.title'),
+          prev: t('widgets.prev'),
+          next: t('widgets.next'),
+          tapToChange: t('widgets.tapToChange'),
         };
         const now = Date.now();
         const input: WidgetInput = {
@@ -119,23 +126,32 @@ export function useWidgetSync() {
             wallTime: (wall) => formatWallTime(wall, { am: t('common.am'), pm: t('common.pm') }),
             dateLabel: (date) => fmt.short(date),
             weekdayShort: (date) => t(`calendar.weekdaysShort.${String(weekdayOf(date)) as '0'}`),
-            monthTitle: (date) => fmt.monthName(date.slice(0, 7)),
           },
           t: labels,
         };
         const day = dayTimeline(input);
         const week = dailyTimeline(input, weekProps);
-        const month = dailyTimeline(input, monthProps);
-        const qibla = location ? { rtl: input.rtl, bearing: qiblaBearing(location.latitude, location.longitude), city, t: labels } : null;
+        const bearing = location ? qiblaBearing(location.latitude, location.longitude) : null;
+        const qibla =
+          bearing === null
+            ? null
+            : {
+                rtl: input.rtl,
+                bearing,
+                city,
+                label: t('qibla.bearingOnly', { degrees: Math.round(bearing), point: compassPoint(bearing) }),
+                cardinals: [t('qibla.N'), t('qibla.E'), t('qibla.S'), t('qibla.W')] as [string, string, string, string],
+                t: labels,
+              };
         const live = liveOn ? liveProps(dayProps(input, now), now) : null;
 
-        const signature = JSON.stringify([day, week, month, qibla, live, taps.length]);
+        const signature = JSON.stringify([day, week, qibla, live, taps.length, edits.length]);
         if (signature !== last.current) {
-          for (const w of [native.widgets.next, native.widgets.today, native.widgets.times, native.widgets.mark, native.widgets.arabic, native.widgets.season]) {
+          const dayWidgets = [native.widgets.next, native.widgets.today, native.widgets.times, native.widgets.mark, native.widgets.edit, native.widgets.prevNext, native.widgets.arabic, native.widgets.season];
+          for (const w of dayWidgets) {
             w.updateTimeline(plistSafe(day));
           }
           native.widgets.streak.updateTimeline(plistSafe(week));
-          native.widgets.month.updateTimeline(plistSafe(month));
           if (qibla) native.widgets.qibla.updateSnapshot(plistSafe(qibla));
           last.current = signature;
         }
@@ -157,5 +173,5 @@ export function useWidgetSync() {
       }
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [index, real, location, city, liveOn, tick, i18n.language, t, fmt, isFriday, isRamadan, isJumuah, markRealIfUnmarked]);
+  }, [index, real, location, city, liveOn, tick, i18n.language, t, fmt, isFriday, isRamadan, isJumuah, markRealIfUnmarked, setRealIfNewer]);
 }

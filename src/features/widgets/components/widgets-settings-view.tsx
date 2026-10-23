@@ -7,15 +7,16 @@ import { Card, Icon, type IconName, Screen, Switch, Text } from '@/shared/ui';
 
 import { widgetsSupported } from '../native';
 
-const LIST: { id: 'next' | 'today' | 'times' | 'mark' | 'streak' | 'arabic' | 'season' | 'month' | 'qibla'; icon: IconName }[] = [
+const LIST: { id: 'next' | 'prevNext' | 'today' | 'times' | 'mark' | 'edit' | 'streak' | 'arabic' | 'season' | 'qibla'; icon: IconName }[] = [
   { id: 'next', icon: 'timer' },
+  { id: 'prevNext', icon: 'timer' },
   { id: 'today', icon: 'dhuhr' },
   { id: 'times', icon: 'list' },
   { id: 'mark', icon: 'check' },
+  { id: 'edit', icon: 'check' },
   { id: 'streak', icon: 'flame' },
   { id: 'arabic', icon: 'globe' },
   { id: 'season', icon: 'crescent' },
-  { id: 'month', icon: 'calendar' },
   { id: 'qibla', icon: 'compass' },
 ];
 

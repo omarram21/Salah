@@ -1,3 +1,30 @@
+diff --git a/node_modules/expo-widgets/ios/Widgets/AppIntent.swift b/node_modules/expo-widgets/ios/Widgets/AppIntent.swift
+index 972fa4f..24ad6c3 100644
+--- a/node_modules/expo-widgets/ios/Widgets/AppIntent.swift
++++ b/node_modules/expo-widgets/ios/Widgets/AppIntent.swift
+@@ -77,14 +77,17 @@ struct WidgetUserInteraction: AppIntent {
+     }
+ 
+     if let newProps {
+-      var newEntry = entry
+-      if let originalProps = entry["props"] as? [String: Any] {
+-        newEntry["props"] = originalProps.merging(newProps) { _, new in new }
+-      }
+       guard var newTimeline = timeline as? [[String: Any]] else {
+         return .result()
+       }
+-      newTimeline[entryIndex] = newEntry
++      // Carry the change into the later entries too, so it doesn't vanish at the next one.
++      for index in entryIndex..<newTimeline.count {
++        var newEntry = newTimeline[index]
++        if let originalProps = newEntry["props"] as? [String: Any] {
++          newEntry["props"] = originalProps.merging(newProps) { _, new in new }
++        }
++        newTimeline[index] = newEntry
++      }
+       WidgetsStorage.set(newTimeline, forKey: "__expo_widgets_\(source)_timeline")
+     }
+ 
 diff --git a/node_modules/expo-widgets/ios/Widgets/DynamicView.swift b/node_modules/expo-widgets/ios/Widgets/DynamicView.swift
 index 17f6609..42818e8 100644
 --- a/node_modules/expo-widgets/ios/Widgets/DynamicView.swift

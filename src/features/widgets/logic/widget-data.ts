@@ -8,9 +8,9 @@ import {
   type DayIndex,
   type PrayerName,
 } from '@/features/prayer-times';
-import { currentStreak, isPerfectDay } from '@/features/stats';
-import { countsAsOnTime, type ExtrasByDate, type PrayerStatus, type RecordsByDate } from '@/features/tracking';
-import { addDays, parseDateKey, weekdayOf, type DateKey } from '@/shared/lib/date-key';
+import { currentStreak } from '@/features/stats';
+import { countsAsOnTime, STATUSES, type ExtrasByDate, type PrayerStatus, type RecordsByDate } from '@/features/tracking';
+import { addDays, parseDateKey, type DateKey } from '@/shared/lib/date-key';
 
 /**
  * Everything the home / Lock Screen widgets show, as plain JSON (widgets run in their own
@@ -29,13 +29,20 @@ export type WidgetPrayer = {
 
 export type WidgetTap = { date: DateKey; prayer: PrayerName; status: 'onTime' | 'mosque'; at: number };
 
+/** A status set on the "Edit prayers" widget; '' clears it. */
+export type WidgetEdit = { date: DateKey; prayer: PrayerName; status: PrayerStatus | ''; at: number };
+
 export type DayProps = {
   rtl: boolean;
+  /** The day the widget shows (location's today at this entry). */
+  date: DateKey;
   dateLabel: string;
   hijriLabel: string;
   city: string;
   /** Next prayer start. */
   next: { key: PrayerName; name: string; time: string; at: number } | null;
+  /** Latest prayer that has started (may be yesterday's Isha). */
+  prev: { key: PrayerName; name: string; time: string; at: number } | null;
   /** Prayer whose time is running (with when it started / ends). */
   current: { key: PrayerName; name: string; date: DateKey; start: number; end: number; status: PrayerStatus | null } | null;
   prayers: WidgetPrayer[];
@@ -44,6 +51,8 @@ export type DayProps = {
   season: SeasonProps;
   /** Set by the widget's own buttons; the app imports it next time it opens. */
   tap?: WidgetTap | null;
+  /** Set by the "Edit prayers" widget, keyed `date:prayer`; the app imports them next time it opens. */
+  edits?: Record<string, WidgetEdit>;
   t: WidgetLabels;
 };
 
@@ -60,22 +69,16 @@ export type WeekProps = {
   t: WidgetLabels;
 };
 
-export type MonthProps = {
+export type QiblaProps = {
   rtl: boolean;
-  title: string;
-  subtitle: string;
-  pct: number | null;
-  streak: number;
-  perfect: number;
-  missed: number;
-  weekdays: string[];
-  /** Leading blanks before day 1 (in the user's first weekday). */
-  offset: number;
-  days: { d: number; statuses: (PrayerStatus | null)[]; today: boolean; perfect: boolean; tracked: boolean }[];
+  bearing: number;
+  city: string;
+  /** "161° from north (SE)", in the app's language. */
+  label: string;
+  /** N, E, S, W in the app's language. */
+  cardinals: [string, string, string, string];
   t: WidgetLabels;
 };
-
-export type QiblaProps = { rtl: boolean; bearing: number; city: string; t: WidgetLabels };
 
 /** Short strings the layouts need, in the app's language. */
 export type WidgetLabels = {
@@ -106,6 +109,9 @@ export type WidgetLabels = {
   kahfDone: string;
   noTimes: string;
   appName: string;
+  prev: string;
+  next: string;
+  tapToChange: string;
 };
 
 export type Formatters = {
@@ -113,7 +119,6 @@ export type Formatters = {
   wallTime: (wall: string) => string;
   dateLabel: (date: DateKey) => string;
   weekdayShort: (date: DateKey) => string;
-  monthTitle: (date: DateKey) => string;
 };
 
 export type WidgetInput = {
@@ -171,14 +176,26 @@ export function dayProps(input: WidgetInput, at: number): DayProps {
     };
   });
 
+  let prev: DayProps['prev'] = null;
+  for (const date of [addDays(today, -1), today]) {
+    const d = index.get(date);
+    if (!d) continue;
+    for (const p of PRAYERS) {
+      const start = d.times[p].at;
+      if (start <= at && (!prev || start > prev.at)) prev = { key: p, name: fmt.prayerName(p, date), time: fmt.wallTime(d.times[p].wall), at: start };
+    }
+  }
+
   return {
     rtl: input.rtl,
+    date: today,
     dateLabel: fmt.dateLabel(today),
     hijriLabel: day ? `${day.hijri.day} ${day.hijri.monthName[input.rtl ? 'ar' : 'en']}` : '',
     city: input.city,
     next: nxt
       ? { key: nxt.prayer, name: fmt.prayerName(nxt.prayer, nxt.date), time: fmt.wallTime(index.get(nxt.date)!.times[nxt.prayer].wall), at: nxt.at }
       : null,
+    prev,
     current: cur
       ? {
           key: cur.prayer,
@@ -262,56 +279,7 @@ export function weekProps(input: WidgetInput, at: number): WeekProps {
   };
 }
 
-/** The current month as a calendar with status dots. */
-export function monthProps(input: WidgetInput, at: number): MonthProps {
-  const today = locationToday(input.index, at, input.deviceOffsetMin);
-  const { year, month } = parseDateKey(today);
-  const first = `${today.slice(0, 7)}-01`;
-  const count = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  const offset = (weekdayOf(first) - input.firstWeekday + 7 + 1) % 7;
-  let due = 0;
-  let good = 0;
-  let perfect = 0;
-  let missed = 0;
-  const days = Array.from({ length: count }, (_, i) => {
-    const date = addDays(first, i);
-    const tracked = date <= today && (!input.trackingSince || date >= input.trackingSince);
-    const rec = input.records[date];
-    const statuses = PRAYERS.map((p) => rec?.[p]?.status ?? null);
-    if (tracked) {
-      for (const p of PRAYERS) {
-        const w = getPrayerWindow(input.index, date, p);
-        if (date < today || (w && w.start <= at)) {
-          due += 1;
-          if (countsAsOnTime(rec?.[p]?.status)) good += 1;
-        }
-        if (rec?.[p]?.status === 'missed') missed += 1;
-      }
-      if (isPerfectDay(rec)) perfect += 1;
-    }
-    return { d: i + 1, statuses, today: date === today, perfect: tracked && isPerfectDay(rec), tracked };
-  });
-  const firstDay = input.index.get(first);
-  const lastDay = input.index.get(addDays(first, count - 1));
-  const lang = input.rtl ? 'ar' : 'en';
-  const hijri = [firstDay?.hijri.monthName[lang], lastDay?.hijri.monthName[lang]].filter(Boolean);
-  const order = Array.from({ length: 7 }, (_, i) => addDays('2026-10-04', (input.firstWeekday - 1 + i) % 7)); // 4 Oct 2026 is a Sunday
-  return {
-    rtl: input.rtl,
-    title: input.fmt.monthTitle(today),
-    subtitle: [...new Set(hijri)].join(' – '),
-    pct: due ? Math.round((good / due) * 100) : null,
-    streak: currentStreak(input.records, today),
-    perfect,
-    missed,
-    weekdays: order.map((d) => input.fmt.weekdayShort(d)),
-    offset,
-    days,
-    t: input.t,
-  };
-}
-
-/** Entries at each local midnight (week / month widgets only change then, plus when the app syncs). */
+/** Entries at each local midnight (the week widget only changes then, plus when the app syncs). */
 export function dailyTimeline<P>(input: WidgetInput, build: (input: WidgetInput, at: number) => P): { date: Date; props: P }[] {
   const points = changePoints(input.index, input.now).filter((at, i, all) => {
     if (i === 0) return true;
@@ -330,6 +298,22 @@ export function collectTaps(entries: { props: Partial<DayProps> | null | undefin
     if (tap.status !== 'onTime' && tap.status !== 'mosque') continue;
     const key = `${tap.date}:${tap.prayer}`;
     if (!byKey.has(key)) byKey.set(key, tap);
+  }
+  return [...byKey.values()].sort((a, b) => a.at - b.at);
+}
+
+/** Edits saved in any timeline entry: the newest per prayer, oldest first. */
+export function collectEdits(entries: { props: Partial<DayProps> | null | undefined }[]): WidgetEdit[] {
+  const byKey = new Map<string, WidgetEdit>();
+  for (const e of entries) {
+    for (const edit of Object.values(e.props?.edits ?? {})) {
+      if (!edit || typeof edit !== 'object' || typeof edit.date !== 'string' || typeof edit.at !== 'number') continue;
+      if (!(PRAYERS as readonly string[]).includes(edit.prayer)) continue;
+      if (edit.status !== '' && !(STATUSES as readonly string[]).includes(edit.status)) continue;
+      const key = `${edit.date}:${edit.prayer}`;
+      const seen = byKey.get(key);
+      if (!seen || edit.at > seen.at) byKey.set(key, edit);
+    }
   }
   return [...byKey.values()].sort((a, b) => a.at - b.at);
 }

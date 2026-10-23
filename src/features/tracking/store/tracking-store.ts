@@ -26,6 +26,8 @@ type TrackingState = PersistedTracking & {
    * when the prayer isn't marked yet. Returns whether it saved.
    */
   markRealIfUnmarked: (date: DateKey, prayer: PrayerName, status: PrayerStatus, now?: number) => boolean;
+  /** Sets (or with null, clears) a real record unless it was changed after `at`. */
+  setRealIfNewer: (date: DateKey, prayer: PrayerName, status: PrayerStatus | null, at: number) => boolean;
   /** Marks a sunnah / Witr / Duha / Al-Kahf / fast done or not done for a date (active dataset). */
   setExtra: (date: DateKey, id: ExtraId, done: boolean, now?: number) => void;
   /** Records the first-use date of the REAL dataset once. */
@@ -111,6 +113,24 @@ export const useTrackingStore = create<TrackingState>()(
             }),
           },
         }));
+        return true;
+      },
+
+      setRealIfNewer: (date, prayer, status, at) => {
+        const real = get().datasets.real;
+        const existing = real.records[date]?.[prayer];
+        if (existing && existing.updatedAt >= at) return false;
+        if (!status && !existing) return false;
+        let records: RecordsByDate;
+        if (status) {
+          records = { ...real.records, [date]: { ...real.records[date], [prayer]: { status, updatedAt: at } } };
+        } else {
+          const { [prayer]: _removed, ...rest } = real.records[date] ?? {};
+          records = { ...real.records };
+          if (Object.keys(rest).length) records[date] = rest;
+          else delete records[date];
+        }
+        set((s) => ({ datasets: { ...s.datasets, real: status ? withRecords(s.datasets.real, date, records) : { ...s.datasets.real, records } } }));
         return true;
       },
 
