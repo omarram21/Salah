@@ -514,7 +514,7 @@ const Streak = (p: WeekProps, env: WidgetEnvironment) => {
       <HStack spacing={16} modifiers={[containerBackground(C.bg, 'widget'), widgetURL('salah://stats')]}>
         <VStack alignment="leading" spacing={2} modifiers={[frame({ width: 96 })]}>
           <Text modifiers={[font({ size: 11, weight: 'semibold' }), foregroundStyle(C.faint)]}>{p.t.thisWeek.toUpperCase()}</Text>
-          <Text modifiers={[font({ size: 34, weight: 'bold', design: 'rounded' }), foregroundStyle(C.ink)]}>{p.pct === null ? '—' : `${p.pct}%`}</Text>
+          <Text modifiers={[font({ size: 34, weight: 'bold', design: 'rounded' }), foregroundStyle(C.ink)]}>{p.pct == null ? '—' : `${p.pct}%`}</Text>
           <Text modifiers={[font({ size: 11 }), foregroundStyle(C.muted)]}>{p.t.onTimePct}</Text>
           <Spacer />
           {flame}
@@ -743,7 +743,7 @@ const Month = (p: MonthProps, env: WidgetEnvironment) => {
         <Text modifiers={[font({ size: 17, weight: 'bold' }), foregroundStyle(C.ink)]}>{p.title}</Text>
         <Text modifiers={[font({ size: 11 }), foregroundStyle(C.muted), lineLimit(1)]}>{p.subtitle}</Text>
         <Spacer />
-        <Text modifiers={[font({ size: 18, weight: 'bold' }), foregroundStyle(C.ink)]}>{p.pct === null ? '—' : `${p.pct}%`}</Text>
+        <Text modifiers={[font({ size: 18, weight: 'bold' }), foregroundStyle(C.ink)]}>{p.pct == null ? '—' : `${p.pct}%`}</Text>
       </HStack>
       <HStack spacing={0}>
         {p.weekdays.map((w, i) => (

@@ -333,3 +333,18 @@ export function collectTaps(entries: { props: Partial<DayProps> | null | undefin
   }
   return [...byKey.values()].sort((a, b) => a.at - b.at);
 }
+
+/**
+ * Props as a property list. expo-widgets stores timelines in UserDefaults, which rejects the
+ * whole write if anything is `null` (it arrives as NSNull), so the widget never gets data.
+ * Null fields are dropped and null array items become '' — the layouts only test truthiness.
+ */
+export function plistSafe<T>(value: T): T {
+  if (Array.isArray(value)) return value.map((v) => (v == null ? '' : plistSafe(v))) as T;
+  if (value && typeof value === 'object' && !(value instanceof Date)) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) if (v != null) out[k] = plistSafe(v);
+    return out as T;
+  }
+  return value;
+}

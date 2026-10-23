@@ -7,7 +7,7 @@ import { cairo, cairoIndex } from '@/features/prayer-times/model/__fixtures__/ca
 import { isFriday } from '@/features/occasions';
 
 import { liveProps } from '../logic/live-activity';
-import { collectTaps, dayProps, dayTimeline, monthProps, weekProps, type WidgetInput, type WidgetLabels, type WidgetTap } from '../logic/widget-data';
+import { collectTaps, dayProps, dayTimeline, monthProps, plistSafe, weekProps, type WidgetInput, type WidgetLabels, type WidgetTap } from '../logic/widget-data';
 
 type Node = { type: string; props: Record<string, unknown> };
 const mockCaptured: Record<string, string> = {};
@@ -53,6 +53,8 @@ function walk(node: unknown, visit: (n: Node) => void) {
 }
 
 const labels = new Proxy({}, { get: (_, k) => String(k) }) as WidgetLabels;
+// What the widget reads back from UserDefaults (the Proxy labels have no keys to copy, so keep them).
+const stored = <P extends { t: WidgetLabels }>(props: P): P => ({ ...plistSafe(props), t: props.t });
 const input = (now: number, over: Partial<WidgetInput> = {}): WidgetInput => ({
   index: cairoIndex,
   records: { '2026-10-31': { fajr: { status: 'late', updatedAt: 0 }, dhuhr: { status: 'mosque', updatedAt: 0 } } },
@@ -112,7 +114,7 @@ describe('widget layouts', () => {
   for (const [moment, inp] of Object.entries(moments)) {
     for (const [name, families] of Object.entries(FAMILIES)) {
       it.each(families.flatMap((f) => ['light', 'dark'].map((scheme) => [f, scheme])))(`${name} · %s · %s · ${moment}`, (family, colorScheme) => {
-        const props = dayProps(inp, inp.now);
+        const props = stored(dayProps(inp, inp.now));
         const tree = load(name)(props, { widgetFamily: family, colorScheme, date: new Date(inp.now) });
         let count = 0;
         walk(tree, () => (count += 1));
@@ -123,13 +125,13 @@ describe('widget layouts', () => {
 
   it.each(['systemSmall', 'systemMedium', 'accessoryCircular'])('HayyaStreak · %s', (family) => {
     const inp = moments['during Asr'];
-    expect(load('HayyaStreak')(weekProps(inp, inp.now), { widgetFamily: family, colorScheme: 'light', date: new Date() })).toBeTruthy();
+    expect(load('HayyaStreak')(stored(weekProps(inp, inp.now)), { widgetFamily: family, colorScheme: 'light', date: new Date() })).toBeTruthy();
   });
 
   it('HayyaMonth · large, light and dark', () => {
     const inp = moments['during Asr'];
     for (const colorScheme of ['light', 'dark']) {
-      const tree = load('HayyaMonth')(monthProps(inp, inp.now), { widgetFamily: 'systemLarge', colorScheme, date: new Date() });
+      const tree = load('HayyaMonth')(stored(monthProps(inp, inp.now)), { widgetFamily: 'systemLarge', colorScheme, date: new Date() });
       const days: string[] = [];
       walk(tree, (n) => n.type === 'Text' && typeof n.props.children === 'string' && /^\d+$/.test(n.props.children) && days.push(n.props.children));
       expect(days).toContain('31');
@@ -201,6 +203,13 @@ describe('widget data', () => {
     expect(w.days[6]!.today).toBe(true);
     // Due since tracking began (28th): 3 full days × 5 + Fajr..Asr today = 18; on time: Dhuhr (mosque).
     expect(w.pct).toBe(Math.round((1 / 18) * 100));
+  });
+
+  it('plistSafe: no nulls left (UserDefaults rejects NSNull), dates kept', () => {
+    const inp = input(cairo('2026-10-31T15:30', 2));
+    const day = plistSafe(dayTimeline(inp));
+    expect(JSON.stringify([day, plistSafe(weekProps(inp, inp.now)), plistSafe(monthProps(inp, inp.now))])).not.toContain('null');
+    expect(day[0]!.date).toBeInstanceOf(Date);
   });
 
   it('month: offset follows the first weekday (Saturday start → 1 Oct is Thursday → 5 blanks)', () => {

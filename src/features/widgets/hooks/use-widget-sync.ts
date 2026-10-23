@@ -22,6 +22,7 @@ import {
   dayProps,
   dayTimeline,
   monthProps,
+  plistSafe,
   weekProps,
   type WidgetInput,
   type WidgetLabels,
@@ -131,11 +132,11 @@ export function useWidgetSync() {
         const signature = JSON.stringify([day, week, month, qibla, live, taps.length]);
         if (signature !== last.current) {
           for (const w of [native.widgets.next, native.widgets.today, native.widgets.times, native.widgets.mark, native.widgets.arabic, native.widgets.season]) {
-            w.updateTimeline(day);
+            w.updateTimeline(plistSafe(day));
           }
-          native.widgets.streak.updateTimeline(week);
-          native.widgets.month.updateTimeline(month);
-          if (qibla) native.widgets.qibla.updateSnapshot(qibla);
+          native.widgets.streak.updateTimeline(plistSafe(week));
+          native.widgets.month.updateTimeline(plistSafe(month));
+          if (qibla) native.widgets.qibla.updateSnapshot(plistSafe(qibla));
           last.current = signature;
         }
 
