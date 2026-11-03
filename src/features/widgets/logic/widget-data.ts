@@ -312,7 +312,7 @@ export function collectEdits(entries: { props: Partial<DayProps> | null | undefi
       if (edit.status !== '' && !(STATUSES as readonly string[]).includes(edit.status)) continue;
       const key = `${edit.date}:${edit.prayer}`;
       const seen = byKey.get(key);
-      if (!seen || edit.at > seen.at) byKey.set(key, edit);
+      if (!seen || edit.at >= seen.at) byKey.set(key, edit);
     }
   }
   return [...byKey.values()].sort((a, b) => a.at - b.at);

@@ -78,7 +78,8 @@ export const en = {
     lastNight: 'Last night · Isha sunnah & Witr',
     nextPrayerIn: '{{prayer}} in {{time}}',
     doneOfFive: '{{n}} of 5 today',
-    streak: '{{n}}-day streak',
+    streak_one: '{{count}}-day streak',
+    streak_other: '{{count}}-day streak',
     alarmFor: 'Alarm for {{prayer}}',
     nextPrayer: 'Next: {{prayer}}',
     at: 'at {{time}}',
@@ -147,7 +148,8 @@ export const en = {
     startTitle: '{{prayer}}',
     startBody: 'It’s time for {{prayer}} ({{time}}).',
     reminderTitle: '{{prayer}} time is ending',
-    reminderBody: '{{minutes}} minutes left for {{prayer}}. Have you prayed?',
+    reminderBody_one: '{{count}} minute left for {{prayer}}. Have you prayed?',
+    reminderBody_other: '{{count}} minutes left for {{prayer}}. Have you prayed?',
     channelName: 'Prayer times',
     actionPrayed: 'Prayed',
     actionMosque: 'In mosque',
@@ -173,7 +175,8 @@ export const en = {
     period: 'Period',
     onTimeShort: 'on time',
     ofTotalMosque: '{{count}} of {{total}} · mosque included',
-    days: '{{n}} days',
+    days_one: '{{count}} day',
+    days_other: '{{count}} days',
     strongest: '{{prayer}} is your strongest prayer',
     weakest: '{{prayer}} needs the most care',
     thisWeek: 'This week',
@@ -228,7 +231,8 @@ export const en = {
     reminder: 'Reminder before time ends',
     reminderBody: 'Only if you haven’t marked the prayer yet',
     reminderMinutes: 'Remind me',
-    minutesBefore: '{{count}} min before',
+    minutesBefore_one: '{{count}} min before',
+    minutesBefore_other: '{{count}} min before',
     notificationsBlocked: 'Notifications are turned off for this app.',
     openSettings: 'Open phone settings',
     language: 'Language',
@@ -350,7 +354,8 @@ export const en = {
   },
   occasions: {
     title: 'Friday & Ramadan',
-    suhoorTitle: 'Suhoor ends in {{minutes}} min',
+    suhoorTitle_one: 'Suhoor ends in {{count}} min',
+    suhoorTitle_other: 'Suhoor ends in {{count}} min',
     suhoorBody: 'Fajr at {{time}}. Eat and drink before then.',
     kahfTitle: 'Jumu’ah Mubarak',
     kahfBody: 'Read Surat al-Kahf today.',
@@ -391,8 +396,10 @@ export const en = {
     statsTitle: 'Friday & Ramadan',
     kahfStat: 'Al-Kahf',
     fastStat: 'Fasting',
-    statFridays: '{{done}} of {{due}} Fridays',
-    statDays: '{{done}} of {{due}} days',
+    statFridays_one: '{{done}} of {{due}} Friday',
+    statFridays_other: '{{done}} of {{due}} Fridays',
+    statDays_one: '{{done}} of {{due}} day',
+    statDays_other: '{{done}} of {{due}} days',
   },
   widgets: {
     title: 'Widgets',
@@ -469,5 +476,7 @@ export const en = {
 };
 
 /** Shape every locale must match (keys only, any string values). */
-type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> };
+/** Plural keys (`x_one`, `x_other`) may add the extra forms other languages need, like Arabic's. */
+type PluralForms<T> = { [K in keyof T as K extends `${infer B}_other` ? `${B}_${'zero' | 'two' | 'few' | 'many'}` : never]?: string };
+type DeepStrings<T> = { [K in keyof T]: T[K] extends string ? string : DeepStrings<T[K]> } & PluralForms<T>;
 export type Translations = DeepStrings<typeof en>;

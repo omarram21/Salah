@@ -52,7 +52,7 @@ export function TodayHero({ now, index, next, nextName, done, streak }: Props) {
         {streak > 0 ? (
           <View className="flex-row items-center gap-1.5">
             <Icon name="flame" size={18} color={c.accent} strokeWidth={2} />
-            <Text variant="small" weight="semibold" tone="accent">{t('today.streak', { n: streak })}</Text>
+            <Text variant="small" weight="semibold" tone="accent">{t('today.streak', { count: streak })}</Text>
           </View>
         ) : null}
       </View>

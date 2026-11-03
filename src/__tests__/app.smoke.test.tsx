@@ -402,7 +402,7 @@ describe('app', () => {
     expect(extras()['2026-10-31']?.fast).toBeTruthy();
 
     renderRouter('./src/app', { initialUrl: '/stats' });
-    expect(await screen.findByLabelText('Fasting: 1 of 1 days')).toBeTruthy();
+    expect(await screen.findByLabelText('Fasting: 1 of 1 day')).toBeTruthy();
   });
 
   it('Friday & Ramadan settings: Suhoor minutes and Al-Kahf time', async () => {

@@ -31,7 +31,7 @@ export function notificationContent(
   const prayer = t(prayerNameKey(plan.prayer, isJumuah(plan.date)));
   const wall = index.get(plan.date)?.times[plan.prayer].wall ?? '';
   const time = wall ? formatWallTime(wall, { am: t('common.am'), pm: t('common.pm') }) : '';
-  if (plan.kind === 'suhoor') return { title: t('occasions.suhoorTitle', { minutes: suhoorMinutes }), body: t('occasions.suhoorBody', { time }) };
+  if (plan.kind === 'suhoor') return { title: t('occasions.suhoorTitle', { count: suhoorMinutes }), body: t('occasions.suhoorBody', { time }) };
   if (plan.kind === 'kahf') return { title: t('occasions.kahfTitle'), body: t('occasions.kahfBody') };
   if (plan.kind === 'start') {
     if (plan.prayer === 'maghrib' && isRamadan(plan.date)) return { title: t('occasions.iftarTitle'), body: t('occasions.iftarBody', { time }) };
@@ -39,6 +39,6 @@ export function notificationContent(
   }
   return {
     title: t('alarms.reminderTitle', { prayer }),
-    body: t('alarms.reminderBody', { prayer, minutes: reminderMinutes }),
+    body: t('alarms.reminderBody', { prayer, count: reminderMinutes }),
   };
 }

@@ -107,14 +107,14 @@ export function StatsView({ index, now, today }: Props) {
         <View className="flex-1 flex-row items-center gap-2.5 rounded-[18px] bg-accent-soft p-3.5 dark:bg-accent-soft-dark">
           <Icon name="flame" size={26} color={c.accent} />
           <View>
-            <Text variant="heading" tone="accent" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { n: current })}</Text>
+            <Text variant="heading" tone="accent" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { count: current })}</Text>
             <Text variant="tiny" tone="accent" weight="medium">{t('stats.currentStreak')}</Text>
           </View>
         </View>
         <View className="flex-1 flex-row items-center gap-2.5 rounded-[18px] bg-chip p-3.5 dark:bg-chip-dark">
           <Icon name="trophy" size={26} color={c.ink} />
           <View>
-            <Text variant="heading" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { n: best })}</Text>
+            <Text variant="heading" style={{ fontSize: 22, lineHeight: 26 }}>{t('stats.days', { count: best })}</Text>
             <Text variant="tiny" tone="muted" weight="medium">{t('stats.bestStreak')}</Text>
           </View>
         </View>
@@ -147,8 +147,8 @@ function OccasionsCard({ occasions }: { occasions: { kahf: Tally; fast: Tally } 
   const { t } = useTranslation();
   const { c } = useThemeColors();
   const rows = [
-    { key: 'fast', label: t('occasions.fastStat'), icon: 'crescent' as const, text: t('occasions.statDays', occasions.fast), ...occasions.fast },
-    { key: 'kahf', label: t('occasions.kahfStat'), icon: 'list' as const, text: t('occasions.statFridays', occasions.kahf), ...occasions.kahf },
+    { key: 'fast', label: t('occasions.fastStat'), icon: 'crescent' as const, text: t('occasions.statDays', { ...occasions.fast, count: occasions.fast.due }), ...occasions.fast },
+    { key: 'kahf', label: t('occasions.kahfStat'), icon: 'list' as const, text: t('occasions.statFridays', { ...occasions.kahf, count: occasions.kahf.due }), ...occasions.kahf },
   ].filter((r) => r.due > 0);
   if (!rows.length) return null;
   return (
@@ -195,7 +195,7 @@ function ExtrasCard({ extras, witrStreak }: { extras: ExtrasCount; witrStreak: n
         <View className="flex-row items-center gap-2 border-t border-[#E4E4E0] pt-3 dark:border-line-dark">
           <Icon name="isha" size={16} color={c.accent} strokeWidth={2} />
           <Text variant="caption" weight="semibold" className="flex-1">{t('sunnah.witrStreak')}</Text>
-          <Text variant="caption" weight="bold" tone="accent" tabular>{t('stats.days', { n: witrStreak })}</Text>
+          <Text variant="caption" weight="bold" tone="accent" tabular>{t('stats.days', { count: witrStreak })}</Text>
         </View>
       ) : null}
     </View>
