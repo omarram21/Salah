@@ -93,6 +93,7 @@
                 "supportedFamilies": [
                   "systemSmall",
                   "systemMedium",
+                  "accessoryCircular",
                   "accessoryRectangular",
                   "accessoryInline"
                 ]

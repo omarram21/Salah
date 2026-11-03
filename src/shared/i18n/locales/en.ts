@@ -444,7 +444,7 @@ export const en = {
       times: 'Small',
       mark: 'Small · Medium (iOS 17+)',
       edit: 'Medium · Large (iOS 17+)',
-      prevNext: 'Small · Medium · Lock Screen',
+      prevNext: 'Small · Medium · Lock Screen (1×1: just the two times)',
       streak: 'Small · Medium · Lock Screen',
       arabic: 'Small · Lock Screen',
       season: 'Medium · Lock Screen',

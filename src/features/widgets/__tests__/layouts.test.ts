@@ -83,7 +83,7 @@ const FAMILIES: Record<string, string[]> = {
   HayyaTimes: ['systemSmall'],
   HayyaMark: ['systemSmall', 'systemMedium'],
   HayyaEdit: ['systemMedium', 'systemLarge'],
-  HayyaPrevNext: ['systemSmall', 'systemMedium', 'accessoryRectangular', 'accessoryInline'],
+  HayyaPrevNext: ['systemSmall', 'systemMedium', 'accessoryCircular', 'accessoryRectangular', 'accessoryInline'],
   HayyaArabic: ['systemSmall', 'accessoryCircular'],
   HayyaSeason: ['systemMedium', 'accessoryCircular', 'accessoryRectangular'],
 };
@@ -242,6 +242,14 @@ describe('widget data', () => {
     const day = plistSafe(dayTimeline(inp));
     expect(JSON.stringify([day, plistSafe(weekProps(inp, inp.now))])).not.toContain('null');
     expect(day[0]!.date).toBeInstanceOf(Date);
+  });
+
+  it('Previous & next · lock screen 1×1: only the two times, no countdown', () => {
+    const now = cairo('2026-10-31T15:30', 2);
+    const props = dayProps(input(now), now);
+    const texts: unknown[] = [];
+    walk(load('HayyaPrevNext')(props, { widgetFamily: 'accessoryCircular', colorScheme: 'light', date: new Date(now) }), (n) => n.type === 'Text' && texts.push(n.props.timerInterval ?? n.props.children));
+    expect(texts).toEqual([props.prev!.time.replace(/\s?[AP]M$/i, ''), props.next!.time.replace(/\s?[AP]M$/i, '')]);
   });
 
   it('previous prayer: the latest that has started, yesterday\'s Isha after midnight', () => {

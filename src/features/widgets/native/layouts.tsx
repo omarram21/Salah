@@ -944,6 +944,20 @@ const PrevNext = (p: DayProps, env: WidgetEnvironment) => {
   if (fam === 'accessoryInline') {
     return <Text modifiers={[containerBackground('#00000000', 'widget')]}>{prev ? `${prev.name} ${prev.time} → ${next.name} ${next.time}` : `${next.name} ${next.time}`}</Text>;
   }
+  if (fam === 'accessoryCircular') {
+    // Just the two times: the previous one faded on top, the next one bold below.
+    const clock = (time: string) => time.replace(/\s?[AP]M$/i, '');
+    return (
+      <ZStack modifiers={[containerBackground('#00000000', 'widget'), widgetURL('salah://')]}>
+        <AccessoryWidgetBackground />
+        <VStack spacing={3}>
+          {prev ? <Text modifiers={[font({ size: 12, weight: 'medium', design: 'rounded' }), monospacedDigit(), opacity(0.6), lineLimit(1), minimumScaleFactor(0.6)]}>{clock(prev.time)}</Text> : null}
+          {prev ? <Rectangle modifiers={[frame({ width: 24, height: 1 }), opacity(0.4)]} /> : null}
+          <Text modifiers={[font({ size: 16, weight: 'bold', design: 'rounded' }), monospacedDigit(), lineLimit(1), minimumScaleFactor(0.6)]}>{clock(next.time)}</Text>
+        </VStack>
+      </ZStack>
+    );
+  }
   if (fam === 'accessoryRectangular') {
     return (
       <VStack alignment="leading" spacing={1} modifiers={[containerBackground('#00000000', 'widget'), widgetURL('salah://')]}>
