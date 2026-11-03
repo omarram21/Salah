@@ -38,6 +38,6 @@ export function currentLanguage(): Language {
 }
 
 export { i18n };
-export { DirectionProvider, useDirection, type Direction } from './direction';
+export { DirectionProvider, useDirection, useNativeDirection, type Direction } from './direction';
 export { useDateFormat } from './use-date-format';
 export type { Translations } from './locales/en';

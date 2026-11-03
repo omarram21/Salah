@@ -15,7 +15,7 @@ import { useAppTheme, useSettingsStore } from '@/features/settings';
 import { useTrackingStore } from '@/features/tracking';
 import { useWidgetSync } from '@/features/widgets';
 // Also initialises i18next (side effect of the module).
-import { directionOf, DirectionProvider } from '@/shared/i18n';
+import { directionOf, DirectionProvider, useNativeDirection } from '@/shared/i18n';
 import { dateKeyAt, deviceUtcOffsetMin } from '@/shared/lib/date-key';
 import { useHydrated } from '@/shared/lib/use-hydrated';
 import { APP_FONTS } from '@/shared/theme/fonts';
@@ -51,6 +51,7 @@ function App() {
   usePrayerTimesSync();
   useNotificationSync();
   useWidgetSync();
+  useNativeDirection(direction);
 
   useEffect(() => {
     if (i18n.language !== language) void i18n.changeLanguage(language);

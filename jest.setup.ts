@@ -47,3 +47,6 @@ jest.mock('expo-audio', () => {
     __player: player,
   };
 });
+
+// Native RTL changes reload the app; there is nothing to reload under Jest.
+jest.mock('expo', () => ({ ...jest.requireActual('expo'), reloadAppAsync: jest.fn(async () => {}) }));
