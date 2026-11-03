@@ -51,7 +51,8 @@ export function Text({
 }: Props) {
   const { isRTL } = useDirection();
   const s = SIZES[variant];
-  const textAlign = align === 'center' ? 'center' : (align === 'start') !== isRTL ? 'left' : 'right';
+  // RN (Fabric) mirrors left/right itself in an RTL layout, so "left" already means "start".
+  const textAlign = align === 'center' ? 'center' : align === 'start' ? 'left' : 'right';
   return (
     <RNText
       className={`${s.cls} ${TONES[tone]} ${className}`}

@@ -7,9 +7,6 @@ export type Direction = 'ltr' | 'rtl';
 
 const DirectionContext = createContext<Direction>('ltr');
 
-// Our styles pick physical left/right themselves (see Text, Input), so RN must not swap them again.
-I18nManager.swapLeftAndRightInRTL(false);
-
 /**
  * Layout direction for the app. Applied with the `direction` style (and expo-router's
  * LocaleProvider) so a language switch shows at once and works in Expo Go, and also with
