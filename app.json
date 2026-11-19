@@ -202,6 +202,12 @@
     "locales": {
       "en": "./locales/en.json",
       "ar": "./locales/ar.json"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "029cd6ff-bc6b-44fb-a1eb-790dfb47967d"
+      }
+    },
+    "owner": "omarram21"
   }
 }
